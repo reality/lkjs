@@ -12,87 +12,125 @@ var isAxiom = function(input) {
 var inferenceRules = [
   // LEFT RULES 
 
-  // Logical rules
-/*
   function(input) { // AL1
     var left = input[0],
-        right = input[1]
-        item = _.last(left, 3);
-
-    if(item[0].match(term) && item[1].match(and) && item[2].match(term)) {
-      left.splice(-2);
+        right = input[1],
+        pattern = null,
+        element = _.last(left);
+        
+    if(element) {
+      pattern = element.match(/^(¬?[A-Z])∧(¬?[A-Z])$/);
     }
-    return input;
+
+    if(pattern) {
+      left.push(pattern[1]);
+    }
+
+    return [ pattern != null, 'AL1', input ];
   },
 
   function(input) { // AL2
     var left = input[0],
         right = input[1],
-        item = _.last(left, 3);
-
-    if(item[0].match(term) && item[1].match(and) && item[2].match(term)) {
-      right.splice(-3, 2);
+        pattern = null,
+        element = _.last(left);
+        
+    if(element) {
+      pattern = element.match(/^(¬?[A-Z])∧(¬?[A-Z])$/);
     }
-    return input;
+
+    if(pattern) {
+      left[0] = pattern[2];
+    }
+
+    return [ pattern != null, 'AL2', input ];
   },
 
-  function(input) { // IL; this seems to split it in two, so TODO this
+  /** TODO: SPLIT RULES
+  function(input) { // IL
     var left = input[0],
         right = input[1],
-        item = _.last(left, 3);
-
-    if(right[0].match(term) && right[1].match(implies) && right[2].match(term)) {
-      left.push(right[0]);
-      right.splice(0, 2);
+        pattern = null;
+        
+    if(right[0]) {
+      pattern = right[0].match(/^(¬?[A-Z])→(¬?[A-Z])$/);
     }
-    return input;
+
+    if(pattern) {
+      right[0] = pattern[1];
+      left.push(pattern[0]);
+    }
+
+    return [ pattern != null, 'IR', input ];
   },
+  */
 
-  // TODO not done after this point
-  function(input) { // NR
+  function(input) { // NL
     var left = input[0],
-        right = input[1];
-
-    if(right[0].match(nterm)) {
-      left.push(negate(right[0]));
-      right.splice(0, 1);
+        right = input[1],
+        pattern = null,
+        element = _.last(left);
+        
+    if(element) {
+      pattern = element.match(/^¬([A-Z])$/);
     }
-    return input;
+
+    if(pattern) {
+      right.push(pattern[1]); // this may actually have to be prepended
+      left.splice(-1);
+    }
+
+    return [ pattern != null, 'NL', input ];
   },
 
   // Structural Rules
 
-  function(input) { // WR
+  function(input) { // WL
     var left = input[0],
-        right = input[1];
+        right = input[1],
+        success = false;
 
-    if(right[0].match(term))
-      right.splice(0, 1);
+    if(right.length >= 1) {
+      left.splice(-1);
+      success = true;
     }
-    return input;
+
+    return [ success, 'WL', input ];
   },
 
-  function(input) { // CR; this sounds like an infinite loop waiting to happen
+  function(input) { // CL
     var left = input[0],
-        right = input[1];
+        right = input[1],
+        element = _.last(left),
+        success = false;
 
-    if(right[0].match(term) && right[1].match(term) && right[0] == right[1])
-      right.splice(0, 1);
+    if(element) {
+      left.push(element);
+      success = true;
     }
-    return input;
+
+    return [ success, 'CL', input ];
   },
 
-  function(input) { // PR
+  function(input) { // PL
     var left = input[0],
-        right = input[1];
+        right = input[1],
+        success = false;
 
-    if(right[0].match(term) && right[1].match(term)) { // PR
-      var t = right[0];
-      right[0] = right[1];
-      right[1] = t;
+    console.log('input before PL');
+    console.log(input);
+
+    if(left.length >= 2) {
+      var i = left.splice(-2, 1);
+      left.push(i[0]);
+      success = true;
     }
-    return input;
-  },*/
+
+    console.log('input after PL');
+    console.log(input);
+
+    return [ success, 'PL', input ];
+  },
 
   // RIGHT RULES START HERE
 
@@ -175,7 +213,7 @@ var inferenceRules = [
     return [ true, 'WR', input ];
   },
 
-  function(input) { // CR; this sounds like an infinite loop waiting to happen
+  function(input) { // CR
     var left = input[0],
         right = input[1];
 
@@ -189,19 +227,9 @@ var inferenceRules = [
   function(input) { // PR
     var left = input[0],
         right = input[1],
-        patternA = false,
-        patternB = false,
         success = false;
 
-    if(right[0]) {
-      patternA = right[0].match(/^(¬?[A-Z])$/);
-    }
-
-    if(right[1]) {
-      patternB = right[1].match(/^(¬?[A-Z])$/);
-    }
-
-    if(patternA && patternB && patternA[1] != patternB[1]) {
+    if(right.length >= 3 && right[0] != right[1]) {
       var t = right[0];
       right[0] = right[1];
       right[1] = t;
@@ -305,6 +333,6 @@ var reason = function(input) {
 };
 
 // Each array symbolises its respective side of the sequent ⇒
-var input = [[], ['A∨¬A']];
+var input = [['B'], ['A∨¬A']];
 
 reason(input);
