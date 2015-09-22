@@ -117,17 +117,11 @@ var inferenceRules = [
         right = input[1],
         success = false;
 
-    console.log('input before PL');
-    console.log(input);
-
     if(left.length >= 2) {
       var i = left.splice(-2, 1);
       left.push(i[0]);
       success = true;
     }
-
-    console.log('input after PL');
-    console.log(input);
 
     return [ success, 'PL', input ];
   },
@@ -273,7 +267,8 @@ var reason = function(input) {
 
   var x = 0,
       solutionFound = false,
-      nextTracks = [];
+      nextTracks = [],
+      trackCount = 1;
 
   while(true) {
     x++;
@@ -301,13 +296,19 @@ var reason = function(input) {
             var newTrack = track.slice();
             newTrack.push(r);
             nextTracks.push(newTrack);
+            trackCount++;
           });
         }
       }
     });
 
     if(solutionFound) {
+      console.log();
+
       console.log('SOLUTION FOUND ON STEP ' + x);
+
+      console.log();
+
       console.log('Proof:')
       
       _.each(solutionFound, function(val, step) {
@@ -315,6 +316,12 @@ var reason = function(input) {
         console.log('      Operation: ' + val[0]);
         console.log('      Value: ' + val[1][0] + ' ⇒ ' + val[1][1]);
       });
+
+      console.log();
+
+      console.log('Stats:');
+      console.log('  Rounds: ' + x);
+      console.log('  Tracks: ' + trackCount);
 
       break;
     }
