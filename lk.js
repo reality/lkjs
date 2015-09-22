@@ -408,7 +408,7 @@ var reason = function(input) {
   }
 ]];*/
 
-/*var input = [[], [
+var input = [[], [
   {
     'operation': 'implies',
     'p1': 'A',
@@ -418,8 +418,8 @@ var reason = function(input) {
       'p2': 'A'
     }
   }
-]];*/
-
+]];
+/*
 var input = [[], [
   {
     'operation': 'or',
@@ -429,6 +429,6 @@ var input = [[], [
       'p1': 'A'
     }
   }
-]];
+]];*/
 
 reason(input);
