@@ -121,72 +121,97 @@ var inferenceRules = [
 
     return [ pattern != null, input ];
   },
-/*
-  function(input) { // AR1
-    var left = input[0],
-        right = input[1];
 
-    if(right[0].match(term) && right[1].match(or) && right[2].match(term)) {
-      right.splice(0, 2);
+  function(input) { // AR2
+    var left = input[0],
+        right = input[1]
+        pattern = right[0].match(/^(¬?[A-Z])∨(¬?[A-Z])$/);
+
+    if(pattern) {
+      console.log('Matched AR2 rule.');
+      right[0] = pattern[2];
     }
-    return input;
+
+    return [ pattern != null, input ];
   },
 
   function(input) { // IR
     var left = input[0],
-        right = input[1];
+        right = input[1],
+        pattern = right[0].match(/^(¬?[A-Z])→(¬?[A-Z])$/);
 
-    if(right[0].match(term) && right[1].match(implies) && right[2].match(term)) {
-      left.push(right[0]);
-      right.splice(0, 2);
+    if(pattern) {
+      console.log('Matched IR rule.');
+      right[0] = pattern[1];
+      left.push(pattern[0]);
     }
-    return input;
+
+    return [ pattern != null, input ];
   },
 
   function(input) { // NR
     var left = input[0],
         right = input[1];
+        pattern = right[0].match(/^¬([A-Z])$/);
 
-    if(right[0].match(nterm)) {
-      left.push(negate(right[0]));
+    if(pattern) {
+      console.log('Matched NR rule.');
+      left.push(pattern[1]);
       right.splice(0, 1);
     }
-    return input;
+
+    return [ pattern != null, input ];
   },
 
   // Structural Rules
-
+/*
   function(input) { // WR
     var left = input[0],
-        right = input[1];
+        right = input[1],
+        pattern = right[0].match(/^(¬?[A-Z])$/);
 
-    if(right[0].match(term))
+    if(pattern) {
+      console.log('Matched WR rule.');
       right.splice(0, 1);
     }
-    return input;
+
+    return [ pattern != null, input ];
   },
 
   function(input) { // CR; this sounds like an infinite loop waiting to happen
     var left = input[0],
-        right = input[1];
+        right = input[1],
+        pattern = right[0].match(/^(¬?[A-Z])$/);
 
-    if(right[0].match(term) && right[1].match(term) && right[0] == right[1])
-      right.splice(0, 1);
+    if(pattern) {
+      console.log('Matched CR rule.');
+      right.splice(1, 0, pattern[1]);
     }
-    return input;
-  },
 
+    return [ pattern != null, input ];
+  },
+*/
   function(input) { // PR
     var left = input[0],
-        right = input[1];
+        right = input[1],
+        patternA = right[0].match(/^(¬?[A-Z])$/),
+        patternB = false,
+        success = false;
 
-    if(right[0].match(term) && right[1].match(term)) { // PR
+    if(right[1]) {
+      patternB = right[1].match(/^(¬?[A-Z])$/);
+    }
+
+    if(patternA && patternB && patternA[1] != patternB[1]) {
+      console.log('Matched PR rule.');
       var t = right[0];
       right[0] = right[1];
       right[1] = t;
+      success = true;
     }
-    return input;
-  }*/
+
+    return [ success, input ];
+  }
 ];
 
 var infer = function(input) {
