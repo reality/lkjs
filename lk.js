@@ -13,7 +13,7 @@ var negate = function(term) {
 var isAxiom = function(input) {
   if(input[0].length == 1 && input[1].length == 1 
       && input[0][0].match(term) && input[1][0].match(term) 
-      && input[0]0] == input[1][0]) {
+      && input[0][0] == input[1][0]) {
     return true;
   } else {
     return false;
@@ -24,7 +24,7 @@ var inferenceRules = [
   // LEFT RULES 
 
   // Logical rules
-
+/*
   function(input) { // AL1
     var left = input[0],
         right = input[1]
@@ -103,7 +103,7 @@ var inferenceRules = [
       right[1] = t;
     }
     return input;
-  },
+  },*/
 
   // RIGHT RULES START HERE
 
@@ -111,14 +111,17 @@ var inferenceRules = [
 
   function(input) { // AR1
     var left = input[0],
-        right = input[1];
+        right = input[1]
+        pattern = right[0].match(/^(¬?[A-Z])∨(¬?[A-Z])$/);
 
-    if(right[0].match(term) && right[1].match(or) && right[2].match(term)) {
-      right.splice(1, 2);
+    if(pattern) {
+      console.log('Matched AR1 rule.');
+      right[0] = pattern[1];
     }
-    return input;
-  },
 
+    return [ pattern != null, input ];
+  },
+/*
   function(input) { // AR1
     var left = input[0],
         right = input[1];
@@ -183,13 +186,13 @@ var inferenceRules = [
       right[1] = t;
     }
     return input;
-  }
+  }*/
 ];
 
 var infer = function(input) {
   console.log(input);
 
-  if(isAxiom(input));
+  if(isAxiom(input)) {
     return true;
   } else {
     var ruleFound = false;
@@ -199,6 +202,7 @@ var infer = function(input) {
 
       if(output[0] == true) { // Success
         input = output[1];
+        ruleFound = true;
         break;
       }
     }
@@ -212,6 +216,6 @@ var infer = function(input) {
 };
 
 // Each array symbolises its respective side of the sequent ⇒
-var input = [[], ['A', '∨', '¬A']];
+var input = [[], ['A∨¬A']];
 
 console.log(infer(input));
