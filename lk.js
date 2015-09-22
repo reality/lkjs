@@ -12,18 +12,29 @@ var isAxiom = function(input) {
 };
 
 var prettyOperation = function(item) {
-  var out = item;
+  var out = item,
+      p1 = item.p1,
+      p2 = item.p2;
+
   if(_.isObject(item) && _.has(item, 'operation')) {
+    if(item.p1 && _.isObject(item.p1)) {
+      p1 = '('+prettyOperation(item.p1)+')';
+    }
+    if(item.p2 && _.isObject(item.p2)) {
+      p2 = '('+prettyOperation(item.p2)+')';
+    }
+
     if(item.operation == 'implies') {
-      if(_.isObject(item.p1)) {
-        item.p1 = '('+prettyOperation(item.p1)+')';
-      }
-      if(_.isObject(item.p2)) {
-        item.p2 = '('+prettyOperation(item.p2)+')';
-      }
-      out = item.p1 + ' → ' + item.p2;
+      out = p1 + ' → ' + p2;
+    } else if(item.operation == 'or') {
+      out = p1 + ' ∨ ' + p2;
+    } else if(item.operation == 'and') {
+      out = p1 + ' ∧ ' + p2;
+    } else if(item.operation == 'not') {
+      out = '¬' + p1;
     }
   }
+
   return out;
 };
 
@@ -157,6 +168,7 @@ var inferenceRules = [
         success = false;
         
     if(right[0] && right[0].operation == 'or') {
+      success = true;
       right[0] = right[0].p2;
       success = true;
     }
@@ -186,6 +198,7 @@ var inferenceRules = [
     if(right[0] && right[0].operation == 'not') {
       left.push(right[0].p1);
       right.splice(0, 1);
+      success = true;
     }
 
     return [ success, 'NR', input ];
@@ -321,7 +334,7 @@ var reason = function(input) {
           val[1][1][i] = prettyOperation(op); 
         });
 
-        console.log('      Value: ' + val[1][0] + ' ⊢ ' + val[1][1]);
+        console.log('      Value: ' + val[1][0].join(', ') + ' ⊢ ' + val[1][1].join(', '));
       });
 
       console.log();
@@ -340,11 +353,23 @@ var reason = function(input) {
       console.log('  Track ' + i);
       _.each(track, function(val, step) {
         console.log('    Step ' + step);
-        console.log('      ' + val);
+        if(val != false) {
+          console.log('      Operation: ' + val[0]);
+
+          
+          var prettified = [[],[]];
+
+          _.each(val[1][0], function(op, i) {
+            prettified[0][i] = prettyOperation(op); 
+          });
+          _.each(val[1][1], function(op, i) {
+            prettified[1][i] = prettyOperation(op); 
+          });
+          
+          console.log('      Value: ' + prettified[0].join(', ') + ' ⊢ ' + prettified[1].join(', '));
+        }
       });
     });
-
-//    if(x==2) break;
   }
 };
 
@@ -383,7 +408,7 @@ var reason = function(input) {
   }
 ]];*/
 
-var input = [[], [
+/*var input = [[], [
   {
     'operation': 'implies',
     'p1': 'A',
@@ -391,6 +416,17 @@ var input = [[], [
       'operation': 'implies',
       'p1': 'B',
       'p2': 'A'
+    }
+  }
+]];*/
+
+var input = [[], [
+  {
+    'operation': 'or',
+    'p1': 'A',
+    'p2': {
+      'operation': 'not',
+      'p1': 'A'
     }
   }
 ]];
