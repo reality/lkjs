@@ -126,8 +126,7 @@ var inferenceRules = [
     console.log('ar1 is do ' + input);
     }
 
-
-    return [ pattern != null, input ];
+    return [ pattern != null, 'AR1', input ];
   },
 
   function(input) { // AR2
@@ -144,7 +143,7 @@ var inferenceRules = [
       right[0] = pattern[2];
     }
 
-    return [ pattern != null, input ];
+    return [ pattern != null, 'AR2', input ];
   },
 
   function(input) { // IR
@@ -163,7 +162,7 @@ var inferenceRules = [
       console.log('right after IR: ' + right);
     }
 
-    return [ pattern != null, input ];
+    return [ pattern != null, 'IR', input ];
   },
 
   function(input) { // NR
@@ -182,7 +181,7 @@ var inferenceRules = [
       console.log('right after NR: ' + right);
     }
 
-    return [ pattern != null, input ];
+    return [ pattern != null, 'NR', input ];
   },
 
   // Structural Rules
@@ -194,7 +193,7 @@ var inferenceRules = [
     console.log('Matched WR rule.');
       right.splice(0, 1);
 
-    return [ true, input ];
+    return [ true, 'WR', input ];
   },
 
   function(input) { // CR; this sounds like an infinite loop waiting to happen
@@ -206,7 +205,7 @@ var inferenceRules = [
       right.splice(1, 0, right[0]);
     }
 
-    return [ true, input ];
+    return [ true, 'CR', input ];
   },
 
   function(input) { // PR
@@ -233,7 +232,7 @@ var inferenceRules = [
       success = true;
     }
 
-    return [ success, input ];
+    return [ success, 'PR', input ];
   }
 ];
 
@@ -250,13 +249,14 @@ var copyInput = function(input) {
 // One round of inference rule application
 var applyRules = function(input) {
   var results = [];
+  console.log('running rules on ' + input);
 
   for(var i=0;i<inferenceRules.length;i++) {
     var cInput = copyInput(input),
         output = inferenceRules[i](cInput);
 
     if(output[0] == true) { // Success
-      results.push(output[1]);
+      results.push([ output[1], output[2] ]);
     }
   }
 
@@ -266,7 +266,7 @@ var applyRules = function(input) {
 var infer = function(input) {
   console.log(input);
 
-  tracks = [ [ input ] ];
+  tracks = [ [ [ 'IN', input ] ] ];
 
   var x = 0,
       solutionFound = false,
@@ -276,10 +276,10 @@ var infer = function(input) {
     x++;
 
     _.each(tracks, function(track, i) {
-      console.log(track);
-      var last = _.last(track);
+      var last = _.last(track)[1];
+      console.log('formula set in track ' + i + ': ' + last);
 
-      if(last == false) {
+      if(_.last(track) == false) {
         return false; // Dead track
       } else if(isAxiom(last)) {
         solutionFound = track; 
@@ -292,7 +292,7 @@ var infer = function(input) {
         console.log('running rules for trakc ' + i);
         var results = applyRules(last);
         if(results.length == 0) { // track dead
-          track.push(false);
+          track.push([false, false]);
           return false;
         } else {
           _.each(results, function(r) {
@@ -310,8 +310,9 @@ var infer = function(input) {
       console.log('Solution:')
       
       _.each(solutionFound, function(val, step) {
-        console.log('    Step ' + step);
-        console.log('      ' + val[0] + ' ⇒ ' + val[1]);
+        console.log('    Step: ' + step);
+        console.log('      Operation: ' + val[0]);
+        console.log('      Value: ' + val[1][0] + ' ⇒ ' + val[1][1]);
       });
 
       break;
