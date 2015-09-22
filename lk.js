@@ -164,33 +164,27 @@ var inferenceRules = [
   },
 
   // Structural Rules
-/*
+
   function(input) { // WR
     var left = input[0],
-        right = input[1],
-        pattern = right[0].match(/^(¬?[A-Z])$/);
+        right = input[1];
 
-    if(pattern) {
-      console.log('Matched WR rule.');
-      right.splice(0, 1);
-    }
+    console.log('Matched WR rule.');
+    right.splice(0, 1);
 
-    return [ pattern != null, input ];
+    return [ true, input ];
   },
 
   function(input) { // CR; this sounds like an infinite loop waiting to happen
     var left = input[0],
-        right = input[1],
-        pattern = right[0].match(/^(¬?[A-Z])$/);
+        right = input[1];
 
-    if(pattern) {
-      console.log('Matched CR rule.');
-      right.splice(1, 0, pattern[1]);
-    }
+    console.log('Matched CR rule.');
+    right.splice(1, 0, right[0]);
 
-    return [ pattern != null, input ];
+    return [ true, input ];
   },
-*/
+
   function(input) { // PR
     var left = input[0],
         right = input[1],
@@ -214,29 +208,88 @@ var inferenceRules = [
   }
 ];
 
+// >_>
+var copyInput = function(input) {
+  var inputCopy = input.slice();
+
+  inputCopy[0] = inputCopy[0].slice();
+  inputCopy[1] = inputCopy[1].slice();
+
+  return inputCopy;
+}
+
+// One round of inference rule application
+var applyRules = function(input) {
+  var results = [];
+
+  for(var i=0;i<inferenceRules.length;i++) {
+    var cInput = copyInput(input),
+        output = inferenceRules[i](cInput);
+
+    if(output[0] == true) { // Success
+      results.push(output[1]);
+    }
+  }
+
+  return results;
+};
+
 var infer = function(input) {
   console.log(input);
 
-  if(isAxiom(input)) {
-    return true;
-  } else {
-    var ruleFound = false;
+  tracks = [ [ input ] ];
+  solutionFound = false;
 
-    for(var i=0;i<inferenceRules.length;i++) { // TODO: make inference rules return success status
-      var output = inferenceRules[i](input);
+  var x = 0;
+  while(true) {
+    x++;
 
-      if(output[0] == true) { // Success
-        input = output[1];
-        ruleFound = true;
-        break;
+    _.each(tracks, function(track, i) {
+    console.log(track);
+      var last = _.last(track);
+
+      if(last == false) {
+        return false; // Dead track
+      } else if(isAxiom(last)) {
+        solutionFound = track; 
+        return true;
+      } else if(input[0].length == 0 && input[1].length == 0) {
+        track.push(false);
+        return false;
+      } else {
+        // Run inference round
+        var results = applyRules(last);
+        if(results.length == 0) { // track dead
+          track.push(false);
+          return false;
+        } else {
+          _.each(results, function(r) {
+            // create a new track with the same history but with a new end 
+            var newTrack = track.slice();
+            newTrack.push(r);
+            tracks.push(newTrack);
+          });
+          
+          // Delete the old track
+          tracks.splice(i, 1); 
+        }
       }
+    });
+
+    if(solutionFound) {
+      console.log('BOOM ' + solutionFound);
+      break;
     }
 
-    if(ruleFound == true) {
-      return infer(input);
-    } else {
-      return false;
-    }
+    console.log('Round ' + x + ' complete! Tracks: ');
+    _.each(tracks, function(track, i) {
+      console.log('  Track ' + i);
+      _.each(track, function(val, step) {
+        console.log('    Step ' + step);
+        console.log('      ' + val);
+      });
+    });
+    break;
   }
 };
 
