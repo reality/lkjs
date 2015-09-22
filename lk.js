@@ -168,7 +168,7 @@ var inferenceRules = [
         pattern = null;
         
     if(right[0]) {
-      pattern = right[0].match(/^(¬?[A-Z])→(¬?[A-Z])$/);
+      pattern = right[0].match(/^(¬?.+)→(¬?.+)$/);
     }
 
     if(pattern) {
@@ -340,6 +340,6 @@ var reason = function(input) {
 };
 
 // Each array symbolises its respective side of the sequent ⇒
-var input = [['B'], ['A∨¬A']];
+var input = [[], ['A→(B→A)']];
 
 reason(input);
