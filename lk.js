@@ -111,21 +111,33 @@ var inferenceRules = [
 
   function(input) { // AR1
     var left = input[0],
-        right = input[1]
-        pattern = right[0].match(/^(¬?[A-Z])∨(¬?[A-Z])$/);
+        right = input[1],
+        pattern = null;
+        
+    console.log('input for ar1 ' + right[0]);
+
+    if(right[0]) {
+      pattern = right[0].match(/^(¬?[A-Z])∨(¬?[A-Z])$/);
+    }
 
     if(pattern) {
       console.log('Matched AR1 rule.');
       right[0] = pattern[1];
+    console.log('ar1 is do ' + input);
     }
+
 
     return [ pattern != null, input ];
   },
 
   function(input) { // AR2
     var left = input[0],
-        right = input[1]
-        pattern = right[0].match(/^(¬?[A-Z])∨(¬?[A-Z])$/);
+        right = input[1],
+        pattern = null;
+        
+    if(right[0]) {
+      pattern = right[0].match(/^(¬?[A-Z])∨(¬?[A-Z])$/);
+    }
 
     if(pattern) {
       console.log('Matched AR2 rule.');
@@ -138,12 +150,17 @@ var inferenceRules = [
   function(input) { // IR
     var left = input[0],
         right = input[1],
-        pattern = right[0].match(/^(¬?[A-Z])→(¬?[A-Z])$/);
+        pattern = null;
+        
+    if(right[0]) {
+      pattern = right[0].match(/^(¬?[A-Z])→(¬?[A-Z])$/);
+    }
 
     if(pattern) {
       console.log('Matched IR rule.');
       right[0] = pattern[1];
       left.push(pattern[0]);
+      console.log('right after IR: ' + right);
     }
 
     return [ pattern != null, input ];
@@ -151,13 +168,18 @@ var inferenceRules = [
 
   function(input) { // NR
     var left = input[0],
-        right = input[1];
-        pattern = right[0].match(/^¬([A-Z])$/);
+        right = input[1],
+        pattern = null;
+        
+    if(right[0]) {
+      pattern = right[0].match(/^¬([A-Z])$/);
+    }
 
     if(pattern) {
       console.log('Matched NR rule.');
       left.push(pattern[1]);
       right.splice(0, 1);
+      console.log('right after NR: ' + right);
     }
 
     return [ pattern != null, input ];
@@ -170,7 +192,7 @@ var inferenceRules = [
         right = input[1];
 
     console.log('Matched WR rule.');
-    right.splice(0, 1);
+      right.splice(0, 1);
 
     return [ true, input ];
   },
@@ -179,8 +201,10 @@ var inferenceRules = [
     var left = input[0],
         right = input[1];
 
-    console.log('Matched CR rule.');
-    right.splice(1, 0, right[0]);
+    if(right[0]) {
+      console.log('Matched CR rule.');
+      right.splice(1, 0, right[0]);
+    }
 
     return [ true, input ];
   },
@@ -188,9 +212,13 @@ var inferenceRules = [
   function(input) { // PR
     var left = input[0],
         right = input[1],
-        patternA = right[0].match(/^(¬?[A-Z])$/),
+        patternA = false,
         patternB = false,
         success = false;
+
+    if(right[0]) {
+      patternA = right[0].match(/^(¬?[A-Z])$/);
+    }
 
     if(right[1]) {
       patternB = right[1].match(/^(¬?[A-Z])$/);
@@ -201,6 +229,7 @@ var inferenceRules = [
       var t = right[0];
       right[0] = right[1];
       right[1] = t;
+      console.log('right after PR: ' + right);
       success = true;
     }
 
@@ -238,14 +267,16 @@ var infer = function(input) {
   console.log(input);
 
   tracks = [ [ input ] ];
-  solutionFound = false;
 
-  var x = 0;
+  var x = 0,
+      solutionFound = false,
+      nextTracks = [];
+
   while(true) {
     x++;
 
     _.each(tracks, function(track, i) {
-    console.log(track);
+      console.log(track);
       var last = _.last(track);
 
       if(last == false) {
@@ -253,11 +284,12 @@ var infer = function(input) {
       } else if(isAxiom(last)) {
         solutionFound = track; 
         return true;
-      } else if(input[0].length == 0 && input[1].length == 0) {
+      } else if(last[0].length == 0 && last[1].length == 0) {
         track.push(false);
         return false;
       } else {
         // Run inference round
+        console.log('running rules for trakc ' + i);
         var results = applyRules(last);
         if(results.length == 0) { // track dead
           track.push(false);
@@ -267,19 +299,25 @@ var infer = function(input) {
             // create a new track with the same history but with a new end 
             var newTrack = track.slice();
             newTrack.push(r);
-            tracks.push(newTrack);
+            nextTracks.push(newTrack);
           });
-          
-          // Delete the old track
-          tracks.splice(i, 1); 
         }
       }
     });
 
     if(solutionFound) {
-      console.log('BOOM ' + solutionFound);
+      console.log('SOLUTION FOUND ON STEP ' + x);
+      console.log('Solution:')
+      
+      _.each(solutionFound, function(val, step) {
+        console.log('    Step ' + step);
+        console.log('      ' + val[0] + ' ⇒ ' + val[1]);
+      });
+
       break;
     }
+
+    tracks = nextTracks;
 
     console.log('Round ' + x + ' complete! Tracks: ');
     _.each(tracks, function(track, i) {
@@ -289,7 +327,9 @@ var infer = function(input) {
         console.log('      ' + val);
       });
     });
-    break;
+   /* if(x == 3) {
+      break;
+    }*/
   }
 };
 
