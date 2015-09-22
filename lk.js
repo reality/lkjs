@@ -1,7 +1,8 @@
 var _ = require('underscore')._;
 
 var isAxiom = function(input) {
-  if(input[0].length == 1 && input[1].length == 1 
+  if(input[0].length == 1 && input[1].length == 1
+      && input[0][0].match(/^[A-Z]$/)
       && input[0][0] == input[1][0]) {
     return true;
   } else {
@@ -11,7 +12,7 @@ var isAxiom = function(input) {
 
 var inferenceRules = [
   // LEFT RULES 
-/*
+
   function(input) { // AL1
     var left = input[0],
         right = input[1],
@@ -19,7 +20,7 @@ var inferenceRules = [
         element = _.last(left);
         
     if(element) {
-      pattern = element.match(/^(¬?[A-Z])∧(¬?[A-Z])$/);
+      pattern = element.match(/^and\((.+?),\s?(.+)\)$/i);
     }
 
     if(pattern) {
@@ -36,7 +37,7 @@ var inferenceRules = [
         element = _.last(left);
         
     if(element) {
-      pattern = element.match(/^(¬?[A-Z])∧(¬?[A-Z])$/);
+      pattern = element.match(/^and\((.+?),\s?(.+)\)$/i);
     }
 
     if(pattern) {
@@ -64,7 +65,7 @@ var inferenceRules = [
     return [ pattern != null, 'IR', input ];
   },
   */
-/*
+
   function(input) { // NL
     var left = input[0],
         right = input[1],
@@ -72,7 +73,7 @@ var inferenceRules = [
         element = _.last(left);
         
     if(element) {
-      pattern = element.match(/^¬([A-Z])$/);
+      pattern = element.match(/^not\((.+)\)$/i);
     }
 
     if(pattern) {
@@ -124,7 +125,7 @@ var inferenceRules = [
     }
 
     return [ success, 'PL', input ];
-  },*/
+  },
 
   // RIGHT RULES START HERE
 
@@ -136,7 +137,7 @@ var inferenceRules = [
         pattern = null;
         
     if(right[0]) {
-      pattern = right[0].match(/^or\((.+),\s?(.+)\)$/i);
+      pattern = right[0].match(/^or\((.+?),\s?(.+)\)$/i);
     }
 
     if(pattern) {
@@ -152,7 +153,7 @@ var inferenceRules = [
         pattern = null;
         
     if(right[0]) {
-      pattern = right[0].match(/^or\((.+),\s?(.+)\)$/i);
+      pattern = right[0].match(/^or\((.+?),\s?(.+)\)$/i);
     }
 
     if(pattern) {
@@ -168,12 +169,18 @@ var inferenceRules = [
         pattern = null;
         
     if(right[0]) {
-      pattern = right[0].match(/^implies\((.+),\s?(.+)\)$/i);
+      pattern = right[0].match(/^implies\((.+?),\s?(.+)\)$/i);
     }
 
     if(pattern) {
-      right[0] = pattern[1];
-      left.push(pattern[0]);
+    console.log('pat');
+    console.log(pattern);
+console.log('before ir');
+console.log(right);
+      right[0] = pattern[2];
+      left.push(pattern[1]);
+console.log('after ir');
+console.log(right);
     }
 
     return [ pattern != null, 'IR', input ];
@@ -329,8 +336,8 @@ var reason = function(input) {
     }
 
     tracks = nextTracks;
-/*
-    console.log('Round ' + x + ' complete! Tracks: ');
+
+/*    console.log('Round ' + x + ' complete! Tracks: ');
     _.each(tracks, function(track, i) {
       console.log('  Track ' + i);
       _.each(track, function(val, step) {
@@ -342,6 +349,7 @@ var reason = function(input) {
 };
 
 // Each array symbolises its respective side of the sequent ⇒
-var input = [[], ['or(A, not(A))']];
+//var input = [[], ['implies(implies(A,implies(B,C)),implies(implies(A,B),implies(A,C)))']];
+var input = [[], ['implies(A,implies(B,A))']]
 
 reason(input);
