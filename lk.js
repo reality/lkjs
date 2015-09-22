@@ -1,18 +1,7 @@
 var _ = require('underscore')._;
 
-var term = /^[A-Z]$/,
-    nterm = /^¬[A-Z]$/,
-    or = /^∨$/;
-    
-
-// Negate a term
-var negate = function(term) {
-  return term.indexOf('¬') == 0 ? term.slice(1) : '¬' + term;
-};
-
 var isAxiom = function(input) {
   if(input[0].length == 1 && input[1].length == 1 
-      && input[0][0].match(term) && input[1][0].match(term) 
       && input[0][0] == input[1][0]) {
     return true;
   } else {
@@ -114,16 +103,12 @@ var inferenceRules = [
         right = input[1],
         pattern = null;
         
-    console.log('input for ar1 ' + right[0]);
-
     if(right[0]) {
       pattern = right[0].match(/^(¬?[A-Z])∨(¬?[A-Z])$/);
     }
 
     if(pattern) {
-      console.log('Matched AR1 rule.');
       right[0] = pattern[1];
-    console.log('ar1 is do ' + input);
     }
 
     return [ pattern != null, 'AR1', input ];
@@ -139,7 +124,6 @@ var inferenceRules = [
     }
 
     if(pattern) {
-      console.log('Matched AR2 rule.');
       right[0] = pattern[2];
     }
 
@@ -156,10 +140,8 @@ var inferenceRules = [
     }
 
     if(pattern) {
-      console.log('Matched IR rule.');
       right[0] = pattern[1];
       left.push(pattern[0]);
-      console.log('right after IR: ' + right);
     }
 
     return [ pattern != null, 'IR', input ];
@@ -175,10 +157,8 @@ var inferenceRules = [
     }
 
     if(pattern) {
-      console.log('Matched NR rule.');
       left.push(pattern[1]);
       right.splice(0, 1);
-      console.log('right after NR: ' + right);
     }
 
     return [ pattern != null, 'NR', input ];
@@ -190,8 +170,7 @@ var inferenceRules = [
     var left = input[0],
         right = input[1];
 
-    console.log('Matched WR rule.');
-      right.splice(0, 1);
+    right.splice(0, 1);
 
     return [ true, 'WR', input ];
   },
@@ -201,7 +180,6 @@ var inferenceRules = [
         right = input[1];
 
     if(right[0]) {
-      console.log('Matched CR rule.');
       right.splice(1, 0, right[0]);
     }
 
@@ -224,11 +202,9 @@ var inferenceRules = [
     }
 
     if(patternA && patternB && patternA[1] != patternB[1]) {
-      console.log('Matched PR rule.');
       var t = right[0];
       right[0] = right[1];
       right[1] = t;
-      console.log('right after PR: ' + right);
       success = true;
     }
 
@@ -249,7 +225,6 @@ var copyInput = function(input) {
 // One round of inference rule application
 var applyRules = function(input) {
   var results = [];
-  console.log('running rules on ' + input);
 
   for(var i=0;i<inferenceRules.length;i++) {
     var cInput = copyInput(input),
@@ -263,7 +238,7 @@ var applyRules = function(input) {
   return results;
 };
 
-var infer = function(input) {
+var reason = function(input) {
   console.log(input);
 
   tracks = [ [ [ 'IN', input ] ] ];
@@ -277,7 +252,6 @@ var infer = function(input) {
 
     _.each(tracks, function(track, i) {
       var last = _.last(track)[1];
-      console.log('formula set in track ' + i + ': ' + last);
 
       if(_.last(track) == false) {
         return false; // Dead track
@@ -289,7 +263,6 @@ var infer = function(input) {
         return false;
       } else {
         // Run inference round
-        console.log('running rules for trakc ' + i);
         var results = applyRules(last);
         if(results.length == 0) { // track dead
           track.push([false, false]);
@@ -307,10 +280,10 @@ var infer = function(input) {
 
     if(solutionFound) {
       console.log('SOLUTION FOUND ON STEP ' + x);
-      console.log('Solution:')
+      console.log('Proof:')
       
       _.each(solutionFound, function(val, step) {
-        console.log('    Step: ' + step);
+        console.log('    Step: ' + (step+1));
         console.log('      Operation: ' + val[0]);
         console.log('      Value: ' + val[1][0] + ' ⇒ ' + val[1][1]);
       });
@@ -328,13 +301,10 @@ var infer = function(input) {
         console.log('      ' + val);
       });
     });
-   /* if(x == 3) {
-      break;
-    }*/
   }
 };
 
 // Each array symbolises its respective side of the sequent ⇒
 var input = [[], ['A∨¬A']];
 
-console.log(infer(input));
+reason(input);
