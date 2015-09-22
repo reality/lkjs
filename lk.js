@@ -11,7 +11,7 @@ var isAxiom = function(input) {
 
 var inferenceRules = [
   // LEFT RULES 
-
+/*
   function(input) { // AL1
     var left = input[0],
         right = input[1],
@@ -64,7 +64,7 @@ var inferenceRules = [
     return [ pattern != null, 'IR', input ];
   },
   */
-
+/*
   function(input) { // NL
     var left = input[0],
         right = input[1],
@@ -124,7 +124,7 @@ var inferenceRules = [
     }
 
     return [ success, 'PL', input ];
-  },
+  },*/
 
   // RIGHT RULES START HERE
 
@@ -136,7 +136,7 @@ var inferenceRules = [
         pattern = null;
         
     if(right[0]) {
-      pattern = right[0].match(/^(¬?[A-Z])∨(¬?[A-Z])$/);
+      pattern = right[0].match(/^or\((.+),\s?(.+)\)$/i);
     }
 
     if(pattern) {
@@ -152,7 +152,7 @@ var inferenceRules = [
         pattern = null;
         
     if(right[0]) {
-      pattern = right[0].match(/^(¬?[A-Z])∨(¬?[A-Z])$/);
+      pattern = right[0].match(/^or\((.+),\s?(.+)\)$/i);
     }
 
     if(pattern) {
@@ -168,7 +168,7 @@ var inferenceRules = [
         pattern = null;
         
     if(right[0]) {
-      pattern = right[0].match(/^(¬?.+)→(¬?.+)$/);
+      pattern = right[0].match(/^implies\((.+),\s?(.+)\)$/i);
     }
 
     if(pattern) {
@@ -185,12 +185,14 @@ var inferenceRules = [
         pattern = null;
         
     if(right[0]) {
-      pattern = right[0].match(/^¬([A-Z])$/);
+      pattern = right[0].match(/^not\((.+)\)$/i);
     }
 
     if(pattern) {
       left.push(pattern[1]);
       right.splice(0, 1);
+      console.log('nr success');
+      console.log(input);
     }
 
     return [ pattern != null, 'NR', input ];
@@ -327,7 +329,7 @@ var reason = function(input) {
     }
 
     tracks = nextTracks;
-
+/*
     console.log('Round ' + x + ' complete! Tracks: ');
     _.each(tracks, function(track, i) {
       console.log('  Track ' + i);
@@ -335,11 +337,11 @@ var reason = function(input) {
         console.log('    Step ' + step);
         console.log('      ' + val);
       });
-    });
+    });*/
   }
 };
 
 // Each array symbolises its respective side of the sequent ⇒
-var input = [[], ['A→(B→A)']];
+var input = [[], ['or(A, not(A))']];
 
 reason(input);
