@@ -10,8 +10,6 @@ var isAxiom = function(input) {
       b = b.p1;
     }
 
-console.log(a);
-console.log(b);
     if(_.isString(a) && a == b) {
       return true;
     }
@@ -19,7 +17,21 @@ console.log(b);
     return false;
   }
 };
-
+function cartesian() {
+    var r = [], arg = arguments, max = arg.length-1;
+    function helper(arr, i) {
+        for (var j=0, l=arg[i].length; j<l; j++) {
+            var a = arr.slice(0); // clone arr
+            a.push(arg[i][j]);
+            if (i==max)
+                r.push(a);
+            else
+                helper(a, i+1);
+        }
+    }
+    helper([], 0);
+    return r;
+}
 var prettyOperation = function(item) {
   var out = item,
       p1 = item.p1,
@@ -78,6 +90,27 @@ var inferenceRules = [
     return [ success, 'AL2', input ];
   },
 
+  function(input) { // OL
+    var left = input[0],
+        right = input[1],
+        success = false,
+        element = _.last(left);
+
+    if(element && element.operation == 'or') {
+
+      var nFormula = [[ element.p2 ], right.splice(1) ];
+
+      left = element.p1;
+
+      success = true;
+    }
+
+    return [ success, 'OL', input, nFormula ];
+  },
+  // turn B or C -> B,C into
+  //  B -> B
+  // C -> C
+
   // TODO: SPLIT RULES
   function(input) { // IL
     var left = input[0],
@@ -87,21 +120,15 @@ var inferenceRules = [
 
     if(element && element.operation == 'implies') {
 
-      //console.log('B4IL');
-      //console.log(input);
-
       var nFormula = [[ element.p2 ], right.splice(0) ];
 
       right.push(element.p1);
       left.splice(-1);
 
-      //console.log('IL');
-      //console.log(nFormula);
-
       success = true;
     }
 
-    return [ success, 'IR', input, nFormula ];
+    return [ success, 'IL', input, nFormula ];
   },
   /*Here we should turn e.g.
   (b or c), not c, (b implies (not a)) -> (not a)
@@ -231,6 +258,7 @@ var inferenceRules = [
         success = false;
         
     if(right[0] && right[0].operation == 'not') {
+    console.log('YES BABY');
       left.push(right[0].p1);
       right.splice(0, 1);
       success = true;
@@ -295,6 +323,9 @@ var applyRules = function(input) {
     var cInput = copyInput(input),
         output = inferenceRules[i](cInput);
 
+if(output[1] == 'NR') {
+console.log('NR');
+}
     if(output[0] == true) { // Success
       results.push([ output[1], output[2], output[3] ]);
     }
@@ -304,123 +335,150 @@ var applyRules = function(input) {
 };
 
 var reason = function(input) {
-  console.log(input);
-
   var x = 0,
-      formulae = [ [ { 
-        'dependency': null,
-        'steps': [ [ 'IN', input ] ],
-      }] ],
+      formula = [ [ [ [ 'IN', input ] ] ] ], 
       solutionFound = false,
       nextTracks = [],
       trackCount = 1,
       formula;
 
   while(true) {
+    nextTracks = [];
     x++;
-    for(var y=0;y<formulae.length;y++) {
-      formula = formulae[y];
-      _.each(formula, function(track, i) {
-        var last = _.last(track.steps)[1];
-        console.log(last);
+    _.each(formula, function(track, i) {
+      var currentStep = _.last(track);
+      console.log(x);
+      console.log(currentStep);
 
-        if(_.last(track.steps) == false) {
-          return false; // Dead track
-        } else if(isAxiom(last)) {
-        console.log(formula);
-          if(formula.dependency === null) {
-            solutionFound = track; 
-            return true;
-          } else {
-            console.log('waiting til its mate is done'); 
-          }
-        } else if(last[0].length == 0 && last[1].length == 0) {
-          track.steps.push(false);
-          return false;
+      if(currentStep == false) {
+        return false;
+      }
+
+      var solved = _.every(currentStep, function(subformula, o) {
+        return isAxiom(subformula[1]);
+      });
+      console.log('solved' + solved);
+
+      if(solved) {
+        console.log('FUTURE');
+        solutionFound = track;
+        return;
+      }
+
+      // Run the rulz
+      var results = null;
+      _.each(currentStep, function(subformula, y) {
+        console.log('doing'+y);
+
+        var answers;
+        if(isAxiom(subformula[1])) {
+          answers = [ subformula ];
         } else {
-          // Run inference round
-          var results = applyRules(last);
-          if(results.length == 0) { // track dead
-            track.push([false, false]);
-            return false;
-          } else {
-            _.each(results, function(r) {
-              if(r[2]) {
-              console.log('making new formula');
-                // Set up a new formula
-                formulae.push([{
-                  'dependency': y,
-                  'steps': [ [ r[0], r[2] ] ]
-                }]);
+          answers = applyRules(subformula[1]);
+        }
 
-                track.dependency = formulae.length-1;
+        // NR orders seem to be removed here for some reason
+        console.log('answers round ' + x);
+        console.log(answers);
 
-                r.splice(-1);
+        // each subformula ret
+        if(results === null) {
+          results = [];
+          _.each(answers, function(r) {
+          console.log(r);
+            var a = [ [ r[0], r[1] ] ];
+
+            if(r[2]) {
+              a.push([ r[0], r[2] ])
+            }
+
+            results.push(a);
+          });
+        } else {
+          _.each(results, function(r) {
+            _.each(answers, function(n) {
+              var a = [ [ n[0], n[1] ] ];
+              if(n[2]) {
+                a.push([ n[0], n[2] ])
               }
-
-              // create a new track with the same history but with a new end 
-              newTrack = _.clone(track);
-              newTrack.steps = track.steps.slice();
-
-              newTrack.steps.push(r);
-              nextTracks.push(newTrack);
-              trackCount++;
+              r.push(a);
             });
-          }
+          }); // result permutations
         }
       });
+      console.log('results');
+      console.log(results);
 
-      formulae[y] = nextTracks;
-/*
-      console.log('Round ' + x + ' formula ' + y + ' complete! Tracks: ');
-      _.each(formula, function(track, i) {
-        console.log('  Track ' + i);
-        _.each(track.steps, function(val, step) {
-          console.log('    Step ' + step);
-          if(val != false) {
-            console.log('      Operation: ' + val[0]);
+      if(results.length == 0) {
+        track.push(false);
+        return;
+      } else {
+        _.each(results, function(r) {
+          var newTrack = track.slice(),
+              newStep = [];
 
-            var prettified = [[],[]];
+          _.each(r, function(sf) {
+            newStep.push([ sf[0], sf[1] ]);
+          });
 
-            _.each(val[1][0], function(op, i) {
-              prettified[0][i] = prettyOperation(op); 
-            });
-            _.each(val[1][1], function(op, i) {
-              prettified[1][i] = prettyOperation(op); 
-            });
-            
-            console.log('      Value: ' + prettified[0].join(', ') + ' ⊢ ' + prettified[1].join(', '));
-          }
+          newTrack.push(newStep);
+          nextTracks.push(newTrack);
+          trackCount++;
         });
-      });*/
-    };
+      }
+    });
 
-    if(x==2) break;
+    formula = nextTracks;
+
+    console.log('Round ' + x + ' complete! Tracks: ');
+    _.each(formula, function(track, i) {
+      console.log('  Track ' + i);
+      _.each(track, function(step, s) {
+        console.log('    Step ' + s);
+        _.each(step, function(val, z) {
+          console.log('    Formula ' + z);
+          console.log('      Operation: ' + val[0]);
+
+          var prettified = [[],[]];
+
+          _.each(val[1][0], function(op, i) {
+            prettified[0][i] = prettyOperation(op); 
+          });
+          _.each(val[1][1], function(op, i) {
+            prettified[1][i] = prettyOperation(op); 
+          });
+          
+          console.log('      Value: ' + prettified[0].join(', ') + ' ⊢ ' + prettified[1].join(', '));
+        });
+      });
+    });
 
     if(solutionFound) {
       console.log();
 
       console.log('SOLUTION FOUND ON STEP ' + x);
 
-      console.log();
-
       console.log('Proof:')
-      
-      _.each(solutionFound.steps, function(val, step) {
-        console.log('    Step: ' + (step+1));
-        console.log('      Operation: ' + val[0]);
 
-        _.each(val[1][0], function(op, i) {
-          val[1][0][i] = prettyOperation(op); 
-        });
-        _.each(val[1][1], function(op, i) {
-          val[1][1][i] = prettyOperation(op); 
-        });
+      _.each(solutionFound, function(step, s) {
+        console.log('    Step ' + s);
+        _.each(step, function(val, z) {
+          console.log('    Formula ' + z);
+          console.log('      Operation: ' + val[0]);
 
-        console.log('      Value: ' + val[1][0].join(', ') + ' ⊢ ' + val[1][1].join(', '));
+          var prettified = [[],[]];
+
+          _.each(val[1][0], function(op, i) {
+            prettified[0][i] = prettyOperation(op); 
+          });
+          _.each(val[1][1], function(op, i) {
+            prettified[1][i] = prettyOperation(op); 
+          });
+          
+          console.log('      Value: ' + prettified[0].join(', ') + ' ⊢ ' + prettified[1].join(', '));
+        });
       });
 
-      console.log();
 
       console.log('Stats:');
       console.log('  Rounds: ' + x);
@@ -428,12 +486,8 @@ var reason = function(input) {
 
       break;
     }
-
   }
 };
-
-// Each array symbolises its respective side of the sequent ⇒
-//var input = [[], ['implies(implies(A,implies(B,C)),implies(implies(A,B),implies(A,C)))']];
 
 /*var input = [ [], [
   {
@@ -496,6 +550,7 @@ var input = [ [], [ {
     }
   }
 ]];*/
+/*
 var input = [[
     {
       'operation': 'or',
@@ -520,8 +575,8 @@ var input = [[
       'p1': 'A'
     }
   ]
-];
-/*var input = [[], [
+];*/
+var input = [[], [
   {
     'operation': 'or',
     'p1': 'A',
@@ -530,6 +585,8 @@ var input = [[
       'p1': 'A'
     }
   }
-]];*/
+]];
 
 reason(input);
+
+
