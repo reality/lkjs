@@ -376,16 +376,12 @@ var reason = function(input) {
 // Each array symbolises its respective side of the sequent ⇒
 //var input = [[], ['implies(implies(A,implies(B,C)),implies(implies(A,B),implies(A,C)))']];
 
-/*var input = [ [], [
+var input = [ [], [
   {
     'operation': 'implies',
     'p1': { 
       'operation': 'implies',
-      'p1': {
-        'operation': 'implies',
-        'p1': 'B',
-        'p2': 'C'
-      },
+      'p1': 'A',
       'p2': {
         'operation': 'implies',
         'p1': 'B',
@@ -406,8 +402,8 @@ var reason = function(input) {
       }
     }
   }
-]];*/
-
+]];
+/*
 var input = [[], [
   {
     'operation': 'implies',
