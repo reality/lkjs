@@ -275,9 +275,11 @@ var applyRules = function(input) {
 var reason = function(input) {
   console.log(input);
 
-  tracks = [ [ [ 'IN', input ] ] ];
-
   var x = 0,
+      tracks = [ { 
+        'dependency': null,
+        'steps': [ [ 'IN', input ] ],
+      }],
       solutionFound = false,
       nextTracks = [],
       trackCount = 1;
@@ -286,15 +288,15 @@ var reason = function(input) {
     x++;
 
     _.each(tracks, function(track, i) {
-      var last = _.last(track)[1];
+      var last = _.last(track.steps)[1];
 
-      if(_.last(track) == false) {
+      if(_.last(track.steps) == false) {
         return false; // Dead track
       } else if(isAxiom(last)) {
         solutionFound = track; 
         return true;
       } else if(last[0].length == 0 && last[1].length == 0) {
-        track.push(false);
+        track.steps.push(false);
         return false;
       } else {
         // Run inference round
@@ -303,10 +305,24 @@ var reason = function(input) {
           track.push([false, false]);
           return false;
         } else {
+        console.log(results);
           _.each(results, function(r) {
+/*
+            if(_.isArray(r)) {
+              // Set up a new track which is dependent on the current track
+              nextTracks.push({
+                'dependency': i,
+                'steps': [ [ r[1] ] ]
+              });
+
+              r = r[0];
+            }
+*/
             // create a new track with the same history but with a new end 
-            var newTrack = track.slice();
-            newTrack.push(r);
+            newTrack = _.clone(track);
+            newTrack.steps = track.steps.slice();
+
+            newTrack.steps.push(r);
             nextTracks.push(newTrack);
             trackCount++;
           });
@@ -323,7 +339,7 @@ var reason = function(input) {
 
       console.log('Proof:')
       
-      _.each(solutionFound, function(val, step) {
+      _.each(solutionFound.steps, function(val, step) {
         console.log('    Step: ' + (step+1));
         console.log('      Operation: ' + val[0]);
 
@@ -351,12 +367,11 @@ var reason = function(input) {
     console.log('Round ' + x + ' complete! Tracks: ');
     _.each(tracks, function(track, i) {
       console.log('  Track ' + i);
-      _.each(track, function(val, step) {
+      _.each(track.steps, function(val, step) {
         console.log('    Step ' + step);
         if(val != false) {
           console.log('      Operation: ' + val[0]);
 
-          
           var prettified = [[],[]];
 
           _.each(val[1][0], function(op, i) {
@@ -376,7 +391,7 @@ var reason = function(input) {
 // Each array symbolises its respective side of the sequent ⇒
 //var input = [[], ['implies(implies(A,implies(B,C)),implies(implies(A,B),implies(A,C)))']];
 
-var input = [ [], [
+/*var input = [ [], [
   {
     'operation': 'implies',
     'p1': { 
@@ -403,7 +418,29 @@ var input = [ [], [
     }
   }
 ]];
+*/
 /*
+var input = [ [], [ {
+    'operation': 'implies',
+    'p1': {
+      'operation': 'implies',
+      'p1': {
+        'operation': 'not',
+        'p1': 'A'
+      },
+      'p2': {
+        'operation': 'not',
+        'p1': 'B'
+      }
+    },
+    'p2': {
+      'operation': 'implies',
+      'p1': 'B',
+      'p2': 'A'
+    }
+  }
+]];
+*/
 var input = [[], [
   {
     'operation': 'implies',
@@ -415,8 +452,7 @@ var input = [[], [
     }
   }
 ]];
-/*
-var input = [[], [
+/*var input = [[], [
   {
     'operation': 'or',
     'p1': 'A',
