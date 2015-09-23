@@ -1,11 +1,20 @@
 var _ = require('underscore')._;
 
 var isAxiom = function(input) {
-  if(input[0].length == 1 && input[1].length == 1
-      && _.isString(input[0][0])
-      && input[0][0].match(/^[A-Z]$/)
-      && input[0][0] == input[1][0]) {
-    return true;
+  if(input[0].length == 1 && input[1].length == 1) {
+    var a = input[0][0],
+        b = input[1][0];
+
+    if(_.isObject(a) && _.isObject(b) && a.operation == 'not' && b.operation == 'not') {
+      a = a.p1;
+      b = b.p1;
+    }
+
+console.log(a);
+console.log(b);
+    if(_.isString(a) && a == b) {
+      return true;
+    }
   } else {
     return false;
   }
@@ -69,24 +78,36 @@ var inferenceRules = [
     return [ success, 'AL2', input ];
   },
 
-  /** TODO: SPLIT RULES
+  // TODO: SPLIT RULES
   function(input) { // IL
     var left = input[0],
         right = input[1],
-        pattern = null;
-        
-    if(right[0]) {
-      pattern = right[0].match(/^(¬?[A-Z])→(¬?[A-Z])$/);
+        success = false,
+        element = _.last(left);
+
+    if(element && element.operation == 'implies') {
+
+      //console.log('B4IL');
+      //console.log(input);
+
+      var nFormula = [[ element.p2 ], right.splice(0) ];
+
+      right.push(element.p1);
+      left.splice(-1);
+
+      //console.log('IL');
+      //console.log(nFormula);
+
+      success = true;
     }
 
-    if(pattern) {
-      right[0] = pattern[1];
-      left.push(pattern[0]);
-    }
-
-    return [ pattern != null, 'IR', input ];
+    return [ success, 'IR', input, nFormula ];
   },
-  */
+  /*Here we should turn e.g.
+  (b or c), not c, (b implies (not a)) -> (not a)
+  into 
+    b or c, (not c) -> b
+    (not a) -> (not a)*/
 
   function(input) { // NL
     var left = input[0],
@@ -149,7 +170,7 @@ var inferenceRules = [
 
   // Logical rules
 
-  function(input) { // AR1
+  function(input) { // OR1
     var left = input[0],
         right = input[1],
         success = false;
@@ -159,10 +180,10 @@ var inferenceRules = [
       success = true;
     }
 
-    return [ success, 'AR1', input ];
+    return [ success, 'OR1', input ];
   },
 
-  function(input) { // AR2
+  function(input) { // OR2
     var left = input[0],
         right = input[1],
         success = false;
@@ -173,7 +194,21 @@ var inferenceRules = [
       success = true;
     }
 
-    return [ success, 'AR2', input ];
+    return [ success, 'OR2', input ];
+  },
+
+  function(input) { // AR
+    var left = input[0],
+        right = input[1],
+        success = false;
+        
+    if(right[0] && right[0].operation == 'and') {
+      success = true;
+      right[0] = right[0].p2;
+      success = true;
+    }
+
+    return [ success, 'OR2', input ];
   },
 
   function(input) { // IR
@@ -210,11 +245,7 @@ var inferenceRules = [
     var left = input[0],
         right = input[1];
 
-//console.log('before wr');
-//console.log(right);
     right.splice(0, 1);
-//console.log('after wr');
-//console.log(right);
 
     return [ true, 'WR', input ];
   },
@@ -265,7 +296,7 @@ var applyRules = function(input) {
         output = inferenceRules[i](cInput);
 
     if(output[0] == true) { // Success
-      results.push([ output[1], output[2] ]);
+      results.push([ output[1], output[2], output[3] ]);
     }
   }
 
@@ -276,59 +307,95 @@ var reason = function(input) {
   console.log(input);
 
   var x = 0,
-      tracks = [ { 
+      formulae = [ [ { 
         'dependency': null,
         'steps': [ [ 'IN', input ] ],
-      }],
+      }] ],
       solutionFound = false,
       nextTracks = [],
-      trackCount = 1;
+      trackCount = 1,
+      formula;
 
   while(true) {
     x++;
+    for(var y=0;y<formulae.length;y++) {
+      formula = formulae[y];
+      _.each(formula, function(track, i) {
+        var last = _.last(track.steps)[1];
+        console.log(last);
 
-    _.each(tracks, function(track, i) {
-      var last = _.last(track.steps)[1];
-
-      if(_.last(track.steps) == false) {
-        return false; // Dead track
-      } else if(isAxiom(last)) {
-        solutionFound = track; 
-        return true;
-      } else if(last[0].length == 0 && last[1].length == 0) {
-        track.steps.push(false);
-        return false;
-      } else {
-        // Run inference round
-        var results = applyRules(last);
-        if(results.length == 0) { // track dead
-          track.push([false, false]);
+        if(_.last(track.steps) == false) {
+          return false; // Dead track
+        } else if(isAxiom(last)) {
+        console.log(formula);
+          if(formula.dependency === null) {
+            solutionFound = track; 
+            return true;
+          } else {
+            console.log('waiting til its mate is done'); 
+          }
+        } else if(last[0].length == 0 && last[1].length == 0) {
+          track.steps.push(false);
           return false;
         } else {
-        console.log(results);
-          _.each(results, function(r) {
-/*
-            if(_.isArray(r)) {
-              // Set up a new track which is dependent on the current track
-              nextTracks.push({
-                'dependency': i,
-                'steps': [ [ r[1] ] ]
-              });
+          // Run inference round
+          var results = applyRules(last);
+          if(results.length == 0) { // track dead
+            track.push([false, false]);
+            return false;
+          } else {
+            _.each(results, function(r) {
+              if(r[2]) {
+              console.log('making new formula');
+                // Set up a new formula
+                formulae.push([{
+                  'dependency': y,
+                  'steps': [ [ r[0], r[2] ] ]
+                }]);
 
-              r = r[0];
-            }
-*/
-            // create a new track with the same history but with a new end 
-            newTrack = _.clone(track);
-            newTrack.steps = track.steps.slice();
+                track.dependency = formulae.length-1;
 
-            newTrack.steps.push(r);
-            nextTracks.push(newTrack);
-            trackCount++;
-          });
+                r.splice(-1);
+              }
+
+              // create a new track with the same history but with a new end 
+              newTrack = _.clone(track);
+              newTrack.steps = track.steps.slice();
+
+              newTrack.steps.push(r);
+              nextTracks.push(newTrack);
+              trackCount++;
+            });
+          }
         }
-      }
-    });
+      });
+
+      formulae[y] = nextTracks;
+/*
+      console.log('Round ' + x + ' formula ' + y + ' complete! Tracks: ');
+      _.each(formula, function(track, i) {
+        console.log('  Track ' + i);
+        _.each(track.steps, function(val, step) {
+          console.log('    Step ' + step);
+          if(val != false) {
+            console.log('      Operation: ' + val[0]);
+
+            var prettified = [[],[]];
+
+            _.each(val[1][0], function(op, i) {
+              prettified[0][i] = prettyOperation(op); 
+            });
+            _.each(val[1][1], function(op, i) {
+              prettified[1][i] = prettyOperation(op); 
+            });
+            
+            console.log('      Value: ' + prettified[0].join(', ') + ' ⊢ ' + prettified[1].join(', '));
+          }
+        });
+      });*/
+    };
+
+    if(x==2) break;
 
     if(solutionFound) {
       console.log();
@@ -362,29 +429,6 @@ var reason = function(input) {
       break;
     }
 
-    tracks = nextTracks;
-
-    console.log('Round ' + x + ' complete! Tracks: ');
-    _.each(tracks, function(track, i) {
-      console.log('  Track ' + i);
-      _.each(track.steps, function(val, step) {
-        console.log('    Step ' + step);
-        if(val != false) {
-          console.log('      Operation: ' + val[0]);
-
-          var prettified = [[],[]];
-
-          _.each(val[1][0], function(op, i) {
-            prettified[0][i] = prettyOperation(op); 
-          });
-          _.each(val[1][1], function(op, i) {
-            prettified[1][i] = prettyOperation(op); 
-          });
-          
-          console.log('      Value: ' + prettified[0].join(', ') + ' ⊢ ' + prettified[1].join(', '));
-        }
-      });
-    });
   }
 };
 
@@ -441,7 +485,7 @@ var input = [ [], [ {
   }
 ]];
 */
-var input = [[], [
+/*var input = [[], [
   {
     'operation': 'implies',
     'p1': 'A',
@@ -451,7 +495,32 @@ var input = [[], [
       'p2': 'A'
     }
   }
-]];
+]];*/
+var input = [[
+    {
+      'operation': 'or',
+      'p1': 'B',
+      'p2': 'C'
+    },
+    {
+      'operation': 'not',
+      'p1': 'C'
+    },
+    {
+      'operation': 'implies',
+      'p1': 'B',
+      'p2': {
+        'operation': 'not',
+        'p1': 'A'
+      }
+    }
+  ], [
+    {
+      'operation': 'not',
+      'p1': 'A'
+    }
+  ]
+];
 /*var input = [[], [
   {
     'operation': 'or',
