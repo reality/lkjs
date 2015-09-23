@@ -17,21 +17,7 @@ var isAxiom = function(input) {
     return false;
   }
 };
-function cartesian() {
-    var r = [], arg = arguments, max = arg.length-1;
-    function helper(arr, i) {
-        for (var j=0, l=arg[i].length; j<l; j++) {
-            var a = arr.slice(0); // clone arr
-            a.push(arg[i][j]);
-            if (i==max)
-                r.push(a);
-            else
-                helper(a, i+1);
-        }
-    }
-    helper([], 0);
-    return r;
-}
+
 var prettyOperation = function(item) {
   var out = item,
       p1 = item.p1,
@@ -372,14 +358,11 @@ var reason = function(input) {
 
         var answers;
         if(isAxiom(subformula[1])) {
-          answers = [ subformula ];
+          answers = [ [ subformula[0], subformula[1] ] ];
+          // doing this
         } else {
           answers = applyRules(subformula[1]);
         }
-
-        // NR orders seem to be removed here for some reason
-        console.log('answers round ' + x);
-        console.log(answers);
 
         // each subformula ret
         if(results === null) {
@@ -394,20 +377,17 @@ var reason = function(input) {
 
             results.push(a);
           });
-        } else {
+        } else { // something braken here
           _.each(results, function(r) {
             _.each(answers, function(n) {
-              var a = [ [ n[0], n[1] ] ];
+              r.push([ n[0], n[1] ]);
               if(n[2]) {
-                a.push([ n[0], n[2] ])
+                r.push([ n[0], n[2] ]);
               }
-              r.push(a);
             });
           }); // result permutations
         }
       });
-      console.log('results');
-      console.log(results);
 
       if(results.length == 0) {
         track.push(false);
@@ -537,9 +517,8 @@ var input = [ [], [ {
       'p2': 'A'
     }
   }
-]];
-*/
-/*var input = [[], [
+]];*/
+var input = [[], [
   {
     'operation': 'implies',
     'p1': 'A',
@@ -549,7 +528,7 @@ var input = [ [], [ {
       'p2': 'A'
     }
   }
-]];*/
+]];
 /*
 var input = [[
     {
@@ -576,7 +555,7 @@ var input = [[
     }
   ]
 ];*/
-var input = [[], [
+/*var input = [[], [
   {
     'operation': 'or',
     'p1': 'A',
@@ -585,7 +564,7 @@ var input = [[], [
       'p1': 'A'
     }
   }
-]];
+]];*/
 
 reason(input);
 
