@@ -84,20 +84,34 @@ var inferenceRules = [
 
     if(element && element.operation == 'or') {
 
-      var nFormula = [[ element.p2 ], right.splice(1) ];
+      var formulaeOne = [],
+          formulaeTwo = [],
+          formulaOneEnd = element.p1,
+          formulaTwoEnd = element.p2;
 
-      // Replace the OR with argument one
-      left.splice(-1, 1, element.p1);
+      // Cut the OR out of the input 
+      left.splice(-1);
 
-      // Add last argument to new formula
-      if(left.length >= 2) {
-        nFormula[0] = nFormula[0].concat(left.splice(-2, 1));
-      }
+      _.each(left, function(a, i) {
+        var thisLeftOne = left.slice(0, i);
+            thisLeftTwo = left.slice(i);
 
-      success = true;
+        thisLeftOne.push(formulaOneEnd)
+        thisLeftTwo.push(formulaTwoEnd)
+
+        _.each(right, function(e, y) {
+          var thisRightOne = right.slice(0, y);
+          var thisRightTwo = right.slice(y);
+
+          formulaeOne.push([ thisLeftOne, thisRightOne ]);
+          formulaeTwo.push([ thisLeftTwo, thisRightTwo ]);
+        });
+      });
+
+      success = formulaeOne.length;
     }
 
-    return [ success, 'OL', input, nFormula ];
+    return [ success, 'OL', formulaeOne, formulaeTwo ];
   },
 //  Track 0
 //    Step 0
@@ -128,20 +142,38 @@ var inferenceRules = [
 
       left.splice(-1);
 
-      nFormula[0] = nFormula[0].concat(left.splice(-1, 1));
+      if(left.length > 2) {
+        nFormula[0] = nFormula[0].concat(left.splice(-1, 1));
+      }
 
-      right.splice(0, 1, element.p1);
+      right.splice(0, 0, element.p1);
+
+      // If there is only one element then the new formula gets it apparently
+      if(right.length == 2) {
+        nFormula[1] = nFormula[1].concat(right.splice(1));
+      }
 
       success = true;
     }
 
     return [ success, 'IL', input, nFormula ];
   },
+  // here we must check every way of splitting the other inputs
   /*Here we should turn e.g.
   (b or c), not c, (b implies (not a)) -> (not a)
   into 
     b or c, (not c) -> b
     (not a) -> (not a)*/
+  /*
+    Value: B ∨ C, ¬C, B → (¬A) ⊢ ¬A
+
+    Formula 0
+      Operation: IL
+      Value: B ∨ C ⊢ B
+    Formula 1
+      Operation: IL
+      Value: ¬A, ¬C ⊢
+*/
 
   function(input) { // NL
     var left = input[0],
@@ -352,8 +384,14 @@ var applyRules = function(input) {
     var cInput = copyInput(input),
         output = inferenceRules[i](cInput);
 
-    if(output[0] == true) { // Success
+    if(output[0] === true) { // Success
       results.push([ output[1], output[2], output[3] ]);
+    } else if(_.isNumber(output[0]) && output[0] > 1) {
+      _.each(output[2], function(f, y) {
+        console.log('YES ADDING ' + output[2][y]);
+        console.log('YES ADDING ' + output[3][y]);
+        results.push([ output[1], output[2][y], output[3][y] ]);
+      });
     }
   }
 
@@ -469,7 +507,6 @@ var reason = function(input) {
       });
     });
 
-if(x==1) break;
     if(solutionFound) {
       console.log();
 
@@ -501,6 +538,9 @@ if(x==1) break;
       console.log('  Rounds: ' + x);
       console.log('  Tracks: ' + trackCount);
 
+      break;
+    }
+    if(x==1){
       break;
     }
   }
@@ -566,6 +606,34 @@ var input = [[
   }], [
     'B', 'C', 'D'
 ]];
+
+  //(b or c), not c, (b implies (not a)) -> (not a)
+/*var input = [[
+  {
+    'operation': 'or',
+    'p1': 'B',
+    'p2': 'C'
+  },
+  {
+    'operation': 'not',
+    'p1': 'C'
+  },
+  {
+    'operation': 'implies',
+    'p1': 'B',
+    'p2': {
+      'operation': 'not',
+      'p1': 'A'
+    }
+  }
+ ],
+ [
+    {
+      'operation': 'not',
+      'p1': 'A'
+    }
+ ]];
+
 /*var input = [[
     {
       'operation': 'or',
