@@ -93,29 +93,29 @@ var inferenceRules = [
       left.splice(-1);
 
       if(left.length > 0) {
-        _.each(left, function(a, i) {
+        for(var i=0;i<left.length+1;i++) {
           var thisLeftOne = left.slice(0, i);
               thisLeftTwo = left.slice(i);
 
           thisLeftOne.push(formulaOneEnd)
           thisLeftTwo.push(formulaTwoEnd)
 
-          _.each(right, function(e, y) {
+          for(var y=0;y<right.length+1;y++) {
             var thisRightOne = right.slice(0, y);
             var thisRightTwo = right.slice(y);
 
             formulaeOne.push([ thisLeftOne, thisRightOne ]);
             formulaeTwo.push([ thisLeftTwo, thisRightTwo ]);
-          });
-        });
+          }
+        }
       } else { // there is probably a better way to do this but it's 1am stop me
-        _.each(right, function(e, y) {
+        for(var y=0;y<right.length+1;y++) {
           var thisRightOne = right.slice(0, y);
           var thisRightTwo = right.slice(y);
 
           formulaeOne.push([ [ formulaOneEnd ], thisRightOne ]);
           formulaeTwo.push([ [ formulaTwoEnd ], thisRightTwo ]);
-        });
+        }
       }
 
       success = formulaeOne.length;
@@ -149,25 +149,49 @@ var inferenceRules = [
 
     if(element && element.operation == 'implies') {
 
-      var nFormula = [ [ element.p2 ], right.splice(1) ];
+      var formulaeOne = [],
+          formulaeTwo = [],
+          formulaOneStart = element.p1,
+          formulaTwoEnd = element.p2;
 
+      // Cut the implies out of the input 
       left.splice(-1);
+      console.log('left before');
+      console.log(left);
 
-      if(left.length > 2) {
-        nFormula[0] = nFormula[0].concat(left.splice(-1, 1));
+      if(left.length > 0) {
+        for(var i=0;i<left.length+1;i++) {
+          var thisLeftOne = left.slice(0, i);
+              thisLeftTwo = left.slice(i);
+
+          thisLeftTwo.push(formulaTwoEnd)
+
+          for(var y=0;y<right.length+1;y++) {
+            var thisRightOne = right.slice(0, y)
+            var thisRightTwo = right.slice(y);
+
+            thisRightOne.splice(0, 0, formulaOneStart);
+
+            formulaeOne.push([ thisLeftOne, thisRightOne ]);
+            formulaeTwo.push([ thisLeftTwo, thisRightTwo ]);
+            console.log('f2 with left ' + i + ' right ' + y);
+            console.log([ thisLeftTwo, thisRightTwo ]);
+          }
+        }
+      } else { // there is probably a better way to do this but it's 1am stop me
+        for(var y=0;y<right.length+1;y++) {
+          var thisRightOne = [formulaOneStart].concat(right.slice(0, y));
+          var thisRightTwo = right.slice(y);
+
+          formulaeOne.push([ [ ], thisRightOne ]);
+          formulaeTwo.push([ [ formulaTwoEnd ], thisRightTwo ]);
+        }
       }
 
-      right.splice(0, 0, element.p1);
-
-      // If there is only one element then the new formula gets it apparently
-      if(right.length == 2) {
-        nFormula[1] = nFormula[1].concat(right.splice(1));
-      }
-
-      success = true;
+      success = formulaeOne.length;
     }
 
-    return [ success, 'IL', input, nFormula ];
+    return [ success, 'IL', formulaeOne, formulaeTwo ];
   },
   // here we must check every way of splitting the other inputs
   /*Here we should turn e.g.
@@ -556,8 +580,20 @@ var reason = function(input) {
     }*/
   }
 };
-
-/*var input = [ [], [
+/*
+var input = [[], [
+  {
+    'operation': 'implies',
+    'p1': 'A',
+    'p2': {
+      'operation': 'implies',
+      'p1': 'B',
+      'p2': 'A'
+    }
+  }
+]];
+*/
+var input = [ [], [
   {
     'operation': 'implies',
     'p1': { 
@@ -583,9 +619,9 @@ var reason = function(input) {
       }
     }
   }
-]];*/
-
-/*var input = [ [], [ {
+]];
+/*
+var input = [ [], [ {
     'operation': 'implies',
     'p1': {
       'operation': 'implies',
@@ -604,9 +640,9 @@ var reason = function(input) {
       'p2': 'A'
     }
   }
-]];*/
+]];
 //B or C -> B,C
-var input = [[
+/*var input = [[
   'A', 'B', 'C', 'D',
   {
     'operation': 'or',
@@ -614,7 +650,13 @@ var input = [[
     'p2': 'C'
   }], [
     'B', 'C', 'D'
-]];
+]];*/
+/*var input = [[
+  'A', 'B'
+  ], [
+  'A', 'B', 'C' 
+]];*/
+
 
   //(b or c), not c, (b implies (not a)) -> (not a)
 /*var input = [[
@@ -643,7 +685,8 @@ var input = [[
     }
  ]];
 
-/*var input = [[
+
+var input = [[
     {
       'operation': 'or',
       'p1': 'B',
@@ -667,8 +710,8 @@ var input = [[
       'p1': 'A'
     }
   ]
-];*/
-/*var input = [[], [
+];
+var input = [[], [
   {
     'operation': 'or',
     'p1': 'A',
@@ -677,7 +720,8 @@ var input = [[
       'p1': 'A'
     }
   }
-]];*/
+]];
+*/
 
 reason(input);
 
