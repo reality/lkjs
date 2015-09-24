@@ -580,6 +580,44 @@ var reason = function(input) {
     }*/
   }
 };
+
+var input = [[], [
+  {
+    'operation': 'implies',
+    'p1': {
+      'operation': 'implies',
+      'p1': 'A',
+      'p2': {
+        'operation': 'or', 
+        'p1': 'B',
+        'p2': 'C'
+      }
+    },
+    'p2': {
+      'operation': 'implies',
+      'p1': {
+        'operation': 'and',
+        'p1': {
+          'operation': 'implies',
+          'p1': 'B',
+          'p2': {
+            'operation': 'not',
+            'p1': 'A'
+          }
+        },
+        'p2': {
+          'operation': 'not',
+          'p1': 'C'
+        }
+      },
+      'p2': {
+        'operation': 'not',
+        'p1': 'A'
+      }
+    }
+  }
+]];
+
 /*
 var input = [[], [
   {
@@ -593,6 +631,7 @@ var input = [[], [
   }
 ]];
 */
+/* hilbert 3
 var input = [ [], [
   {
     'operation': 'implies',
