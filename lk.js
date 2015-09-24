@@ -338,7 +338,7 @@ var inferenceRules = [
     var left = input[0],
         right = input[1],
         success = false;
-        
+
     if(right[0] && right[0].operation == 'implies') {
       left.push(right[0].p1)
       right[0] = right[0].p2;
@@ -575,9 +575,9 @@ var reason = function(input) {
 
       break;
     }
-    /*if(x==1){
+    if(x==7){
       break;
-    }*/
+    }
   }
 };
 
