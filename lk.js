@@ -86,22 +86,36 @@ var inferenceRules = [
 
       var nFormula = [[ element.p2 ], right.splice(1) ];
 
-      left.splice(-1,1,element.p1);
+      // Replace the OR with argument one
+      left.splice(-1, 1, element.p1);
 
-      console.log('OLRUN');
-      console.log(input);
-      console.log(nFormula);
+      // Add last argument to new formula
+      if(left.length >= 2) {
+        nFormula[0] = nFormula[0].concat(left.splice(-2, 1));
+      }
 
       success = true;
     }
 
     return [ success, 'OL', input, nFormula ];
   },
+//  Track 0
+//    Step 0
+//    Formula 0
+//      Operation: IN
+//      Value: B ∨ C ⊢ B, C
+ //   Step 1
+  //  Formula 0
+ //     Operation: OL
+ //     Value:  ⊢ B
+ ///   Formula 1
+  //    Operation: OL
+ //     Value: C, B ⊢ C
+
   // turn B or C -> B,C into
   //  B -> B
   // C -> C
 
-  // TODO: SPLIT RULES
   function(input) { // IL
     var left = input[0],
         right = input[1],
@@ -110,10 +124,13 @@ var inferenceRules = [
 
     if(element && element.operation == 'implies') {
 
-      var nFormula = [[ element.p2 ], right.splice(0) ];
+      var nFormula = [ [ element.p2 ], right.splice(1) ];
 
-      right.push(element.p1);
       left.splice(-1);
+
+      nFormula[0] = nFormula[0].concat(left.splice(-1, 1));
+
+      right.splice(0, 1, element.p1);
 
       success = true;
     }
@@ -452,6 +469,7 @@ var reason = function(input) {
       });
     });
 
+if(x==1) break;
     if(solutionFound) {
       console.log();
 
@@ -536,18 +554,19 @@ var reason = function(input) {
     }
   }
 ]];*/
-/*var input = [[], [
-  {
-    'operation': 'implies',
-    'p1': 'A',
-    'p2': {
-      'operation': 'implies',
-      'p1': 'B',
-      'p2': 'A'
-    }
-  }
-]];*/
+//B or C -> B,C
 var input = [[
+  'A',
+  'B',
+  'C',
+  {
+    'operation': 'or',
+    'p1': 'B',
+    'p2': 'C'
+  }], [
+    'B', 'C', 'D'
+]];
+/*var input = [[
     {
       'operation': 'or',
       'p1': 'B',
@@ -571,7 +590,7 @@ var input = [[
       'p1': 'A'
     }
   ]
-];
+];*/
 /*var input = [[], [
   {
     'operation': 'or',
