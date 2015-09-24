@@ -133,7 +133,6 @@ var inferenceRules = [
         element = _.last(left);
         
     if(element && element.operation == 'not') {
-      console.log('THAT ELEMENT IS ' + element.p1);
       right.splice(0, 0, element.p1);
       left.splice(-1);
       success = true;
@@ -215,6 +214,27 @@ var inferenceRules = [
 
     return [ success, 'OR2', input ];
   },
+
+  function(input) { // AR
+    var left = input[0],
+        right = input[1],
+        success = false;
+
+    if(right[0] && right[0].operation == 'and') {
+
+      var nFormula = [ left.splice(-1) , [ right[0].p2 ]  ];
+      nFormula[1] = nFormula[1].concat(right.splice(2));
+
+      right.splice(0,1,element.p1);
+
+      success = true;
+    }
+
+    return [ success, 'AR', input, nFormula ];
+  },
+  // turn B and C -> B,C into
+  //  B -> B
+  // C -> C
 
   function(input) { // AR
     var left = input[0],
@@ -316,9 +336,6 @@ var applyRules = function(input) {
         output = inferenceRules[i](cInput);
 
     if(output[0] == true) { // Success
-if(output[1] == 'NL') {
-console.log('NL is go');
-}
       results.push([ output[1], output[2], output[3] ]);
     }
   }
@@ -339,8 +356,6 @@ var reason = function(input) {
     x++;
     _.each(formula, function(track, i) {
       var currentStep = _.last(track);
-      console.log(x);
-      console.log(currentStep);
 
       if(currentStep == false) {
         return false;
@@ -349,10 +364,8 @@ var reason = function(input) {
       var solved = _.every(currentStep, function(subformula, o) {
         return isAxiom(subformula[1]);
       });
-      console.log('solved' + solved);
 
       if(solved) {
-        console.log('FUTURE');
         solutionFound = track;
         return;
       }
@@ -360,7 +373,6 @@ var reason = function(input) {
       // Run the rulz
       var results = null;
       _.each(currentStep, function(subformula, y) {
-        console.log('doing'+y);
 
         var answers;
         if(isAxiom(subformula[1])) {
@@ -370,14 +382,12 @@ var reason = function(input) {
           answers = applyRules(subformula[1]);
         }
         _.each(answers,function(a){
-        console.log(a[0] + 'ye');
         });
 
         // each subformula ret
         if(results === null) {
           results = [];
           _.each(answers, function(r) {
-          console.log(r);
             var a = [ [ r[0], r[1] ] ];
 
             if(r[2]) {
@@ -478,7 +488,7 @@ var reason = function(input) {
   }
 };
 
-/*var input = [ [], [
+var input = [ [], [
   {
     'operation': 'implies',
     'p1': { 
@@ -505,9 +515,8 @@ var reason = function(input) {
     }
   }
 ]];
-*/
-/*
-var input = [ [], [ {
+
+/*var input = [ [], [ {
     'operation': 'implies',
     'p1': {
       'operation': 'implies',
@@ -538,7 +547,7 @@ var input = [ [], [ {
     }
   }
 ]];*/
-var input = [[
+/*var input = [[
     {
       'operation': 'or',
       'p1': 'B',
