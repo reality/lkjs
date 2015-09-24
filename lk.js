@@ -92,23 +92,34 @@ var inferenceRules = [
       // Cut the OR out of the input 
       left.splice(-1);
 
-      _.each(left, function(a, i) {
-        var thisLeftOne = left.slice(0, i);
-            thisLeftTwo = left.slice(i);
+      if(left.length > 0) {
+        _.each(left, function(a, i) {
+          var thisLeftOne = left.slice(0, i);
+              thisLeftTwo = left.slice(i);
 
-        thisLeftOne.push(formulaOneEnd)
-        thisLeftTwo.push(formulaTwoEnd)
+          thisLeftOne.push(formulaOneEnd)
+          thisLeftTwo.push(formulaTwoEnd)
 
+          _.each(right, function(e, y) {
+            var thisRightOne = right.slice(0, y);
+            var thisRightTwo = right.slice(y);
+
+            formulaeOne.push([ thisLeftOne, thisRightOne ]);
+            formulaeTwo.push([ thisLeftTwo, thisRightTwo ]);
+          });
+        });
+      } else { // there is probably a better way to do this but it's 1am stop me
         _.each(right, function(e, y) {
           var thisRightOne = right.slice(0, y);
           var thisRightTwo = right.slice(y);
 
-          formulaeOne.push([ thisLeftOne, thisRightOne ]);
-          formulaeTwo.push([ thisLeftTwo, thisRightTwo ]);
+          formulaeOne.push([ [ formulaOneEnd ], thisRightOne ]);
+          formulaeTwo.push([ [ formulaTwoEnd ], thisRightTwo ]);
         });
-      });
+      }
 
       success = formulaeOne.length;
+      console.log('OL ' + success);
     }
 
     return [ success, 'OL', formulaeOne, formulaeTwo ];
@@ -540,9 +551,9 @@ var reason = function(input) {
 
       break;
     }
-    if(x==1){
+    /*if(x==1){
       break;
-    }
+    }*/
   }
 };
 
@@ -596,9 +607,7 @@ var reason = function(input) {
 ]];*/
 //B or C -> B,C
 var input = [[
-  'A',
-  'B',
-  'C',
+  'A', 'B', 'C', 'D',
   {
     'operation': 'or',
     'p1': 'B',
