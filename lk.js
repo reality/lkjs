@@ -488,7 +488,7 @@ var reason = function(input) {
   }
 };
 
-var input = [ [], [
+/*var input = [ [], [
   {
     'operation': 'implies',
     'p1': { 
@@ -514,9 +514,9 @@ var input = [ [], [
       }
     }
   }
-]];
+]];*/
 
-/*var input = [ [], [ {
+var input = [ [], [ {
     'operation': 'implies',
     'p1': {
       'operation': 'implies',
@@ -535,7 +535,7 @@ var input = [ [], [
       'p2': 'A'
     }
   }
-]];*/
+]];
 /*var input = [[], [
   {
     'operation': 'implies',
