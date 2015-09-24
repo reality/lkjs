@@ -86,7 +86,11 @@ var inferenceRules = [
 
       var nFormula = [[ element.p2 ], right.splice(1) ];
 
-      left = element.p1;
+      left.splice(-1,1,element.p1);
+
+      console.log('OLRUN');
+      console.log(input);
+      console.log(nFormula);
 
       success = true;
     }
@@ -129,8 +133,10 @@ var inferenceRules = [
         element = _.last(left);
         
     if(element && element.operation == 'not') {
-      right.push(element.p1); // this may actually have to be prepended
+      console.log('THAT ELEMENT IS ' + element.p1);
+      right.splice(0, 0, element.p1);
       left.splice(-1);
+      success = true;
     }
 
     return [ success, 'NL', input ];
@@ -280,7 +286,7 @@ var inferenceRules = [
         right = input[1],
         success = false;
 
-    if(right.length >= 3 && right[0] != right[1]) {
+    if(right.length >= 2 && right[0] != right[1]) {
       var t = right[0];
       right[0] = right[1];
       right[1] = t;
@@ -309,10 +315,10 @@ var applyRules = function(input) {
     var cInput = copyInput(input),
         output = inferenceRules[i](cInput);
 
-if(output[1] == 'NR') {
-console.log('NR');
-}
     if(output[0] == true) { // Success
+if(output[1] == 'NL') {
+console.log('NL is go');
+}
       results.push([ output[1], output[2], output[3] ]);
     }
   }
@@ -363,6 +369,9 @@ var reason = function(input) {
         } else {
           answers = applyRules(subformula[1]);
         }
+        _.each(answers,function(a){
+        console.log(a[0] + 'ye');
+        });
 
         // each subformula ret
         if(results === null) {
@@ -518,7 +527,7 @@ var input = [ [], [ {
     }
   }
 ]];*/
-var input = [[], [
+/*var input = [[], [
   {
     'operation': 'implies',
     'p1': 'A',
@@ -528,8 +537,7 @@ var input = [[], [
       'p2': 'A'
     }
   }
-]];
-/*
+]];*/
 var input = [[
     {
       'operation': 'or',
@@ -554,7 +562,7 @@ var input = [[
       'p1': 'A'
     }
   ]
-];*/
+];
 /*var input = [[], [
   {
     'operation': 'or',
