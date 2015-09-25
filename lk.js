@@ -119,7 +119,7 @@ var inferenceRules = [
       }
 
       success = formulaeOne.length;
-      console.log('OL ' + success);
+      //console.log('OL ' + success);
     }
 
     return [ success, 'OL', formulaeOne, formulaeTwo ];
@@ -156,8 +156,8 @@ var inferenceRules = [
 
       // Cut the implies out of the input 
       left.splice(-1);
-      console.log('left before');
-      console.log(left);
+      //console.log('left before');
+      //console.log(left);
 
       if(left.length > 0) {
         for(var i=0;i<left.length+1;i++) {
@@ -174,8 +174,8 @@ var inferenceRules = [
 
             formulaeOne.push([ thisLeftOne, thisRightOne ]);
             formulaeTwo.push([ thisLeftTwo, thisRightTwo ]);
-            console.log('f2 with left ' + i + ' right ' + y);
-            console.log([ thisLeftTwo, thisRightTwo ]);
+            //console.log('f2 with left ' + i + ' right ' + y);
+            //console.log([ thisLeftTwo, thisRightTwo ]);
           }
         }
       } else { // there is probably a better way to do this but it's 1am stop me
@@ -354,7 +354,7 @@ var inferenceRules = [
         success = false;
         
     if(right[0] && right[0].operation == 'not') {
-    console.log('YES BABY');
+    //console.log('YES BABY');
       left.push(right[0].p1);
       right.splice(0, 1);
       success = true;
@@ -423,8 +423,7 @@ var applyRules = function(input) {
       results.push([ output[1], output[2], output[3] ]);
     } else if(_.isNumber(output[0]) && output[0] > 1) {
       _.each(output[2], function(f, y) {
-        console.log('YES ADDING ' + output[2][y]);
-        console.log('YES ADDING ' + output[3][y]);
+        //console.log('new result for ' + output[1] + ' ' + y);
         results.push([ output[1], output[2][y], output[3][y] ]);
       });
     }
@@ -438,8 +437,7 @@ var reason = function(input) {
       formula = [ [ [ [ 'IN', input ] ] ] ], 
       solutionFound = false,
       nextTracks = [],
-      trackCount = 1,
-      formula;
+      trackCount = 1;
 
   while(true) {
     nextTracks = [];
@@ -447,7 +445,7 @@ var reason = function(input) {
     _.each(formula, function(track, i) {
       var currentStep = _.last(track);
 
-      if(currentStep == false) {
+      if(currentStep == 'no' || currentStep == false) {
         return false;
       }
 
@@ -466,29 +464,35 @@ var reason = function(input) {
 
         var answers;
         if(isAxiom(subformula[1])) {
-          answers = [ [ subformula[0], subformula[1] ] ];
+          answers = [[ subformula[0], subformula[1] ]];
           // doing this
         } else {
           answers = applyRules(subformula[1]);
         }
-        _.each(answers,function(a){
-        });
+        /*if(i==0) {
+          console.log('what it looks like for 0');
+          console.log(answers);
+        }
+        if(i==6) {
+          console.log('what it looks like for 6');
+          console.log(answers);
+        }*/
 
         // each subformula ret
         if(results === null) {
           results = [];
-          _.each(answers, function(r) {
-            var a = [ [ r[0], r[1] ] ];
+          _.each(answers, function(r, z) {
+            var a = [[ r[0], r[1] ]];
 
             if(r[2]) {
-              a.push([ r[0], r[2] ])
+              a.push([ r[0], r[2] ]);
             }
 
             results.push(a);
           });
-        } else { // something braken here
-          _.each(results, function(r) {
-            _.each(answers, function(n) {
+        } else { // If we already have some results for this track, then add a subformula to each of them
+          _.each(results, function(r, o) {
+            _.each(answers, function(n, z) {
               r.push([ n[0], n[1] ]);
               if(n[2]) {
                 r.push([ n[0], n[2] ]);
@@ -496,30 +500,51 @@ var reason = function(input) {
             });
           }); // result permutations
         }
+
+        /*if(i==0) {
+          console.log('results looks like for 0');
+          console.log(results);
+        }
+        if(i==6) {
+          console.log('results looks like for 6');
+          console.log(results);
+        }*/
       });
 
-      if(results.length == 0) {
-        track.push(false);
-        return;
-      } else {
-        _.each(results, function(r) {
-          var newTrack = track.slice(),
-              newStep = [];
+      var u = [];
+      _.each(results, function(r, o) {
+        var newTrack = track.slice(),
+            newStep = [];
 
-          _.each(r, function(sf) {
-            newStep.push([ sf[0], sf[1] ]);
-          });
-
-          newTrack.push(newStep);
-          nextTracks.push(newTrack);
-          trackCount++;
+        //console.log('creating new track ' + o + 'processing old track ' + i);
+        _.each(r, function(sf, z) {
+        /*if(sf[0] == 'I') {
+          console.log('noy');
+          console.log(sf);
+          console.log(r);
+        } else {
+          console.log('nos');
+          console.log(sf);
+        }*/
+          newStep.push([ sf[0], sf[1] ]);
+          //  console.log('adding to newstep in ' + o + ': ' + sf[0] + ' ' + sf[1]);
         });
-      }
+
+        newTrack.push(newStep);
+         // console.log('adding new track with current step in ' + o );
+          nextTracks.push(newTrack);
+
+        trackCount++;
+      });
+
+      // stop evaluating this track
+      track.push('no');
     });
 
     formula = nextTracks;
 
     console.log('Round ' + x + ' complete! Tracks: ');
+    /*
     _.each(formula, function(track, i) {
       console.log('  Track ' + i);
       _.each(track, function(step, s) {
@@ -541,7 +566,7 @@ var reason = function(input) {
         });
       });
     });
-
+*/
     if(solutionFound) {
       console.log();
 
@@ -575,11 +600,45 @@ var reason = function(input) {
 
       break;
     }
-    if(x==7){
+    /*if(x==3) {
       break;
-    }
+    }*/
   }
 };
+
+// B ∨ C ⊢ ((B → (¬A)) ∧ (¬C)) → (¬A)
+/*
+var input = [[
+  {
+    'operation': 'or', 
+    'p1': 'B',
+    'p2': 'C'
+  },
+  ],[
+  {
+      'operation': 'implies',
+      'p1': {
+        'operation': 'and',
+        'p1': {
+          'operation': 'implies',
+          'p1': 'B',
+          'p2': {
+            'operation': 'not',
+            'p1': 'A'
+          }
+        },
+        'p2': {
+          'operation': 'not',
+          'p1': 'C'
+        }
+      },
+      'p2': {
+        'operation': 'not',
+        'p1': 'A'
+      }
+  }
+  ]
+];*/
 
 var input = [[], [
   {
@@ -617,7 +676,6 @@ var input = [[], [
     }
   }
 ]];
-
 /*
 var input = [[], [
   {
@@ -629,8 +687,7 @@ var input = [[], [
       'p2': 'A'
     }
   }
-]];
-*/
+]];*/
 /* hilbert 3
 var input = [ [], [
   {
