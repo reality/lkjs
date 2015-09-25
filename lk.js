@@ -18,6 +18,36 @@ var isAxiom = function(input) {
   }
 };
 
+var formulaeEquals = function(a, b) {
+  // A set of two formulae forming a step of a track
+  var different = false;
+  console.log('trying to compare ' + a + ' and ' + b);
+
+  _.each(a[1], function(sf, x) {
+    var bsf = b[1];
+    console.log('got ' + a[1]);
+    _.each(sf, function(li, y) {
+      if(prettyOperation(li) != prettyOperation(bsf[0][y])) {
+        console.log('comparing ' + prettyOperation(li) + ' ' + prettyOperation(bsf[y]));
+        different = true;
+      }
+    }); 
+  });
+
+  _.each(a[2], function(sf, x) {
+    var bsf = b[2];
+    console.log('got ' + a[1]);
+    _.each(sf, function(li, y) {
+      if(prettyOperation(li) != prettyOperation(bsf[0][y])) {
+        console.log('comparing ' + prettyOperation(li) + ' ' + prettyOperation(bsf[y]));
+        different = true;
+      }
+    }); 
+  });
+
+  return different == false;
+};
+
 var prettyOperation = function(item) {
   var out = item,
       p1 = item.p1,
@@ -437,11 +467,13 @@ var reason = function(input) {
       formula = [ [ [ [ 'IN', input ] ] ] ], 
       solutionFound = false,
       nextTracks = [],
-      trackCount = 1;
+      trackCount = 1,
+      oldTracks = {};
 
   while(true) {
     nextTracks = [];
     x++;
+
     _.each(formula, function(track, i) {
       var currentStep = _.last(track);
 
@@ -501,38 +533,25 @@ var reason = function(input) {
           }); // result permutations
         }
 
-        /*if(i==0) {
-          console.log('results looks like for 0');
-          console.log(results);
-        }
-        if(i==6) {
-          console.log('results looks like for 6');
-          console.log(results);
-        }*/
       });
 
-      var u = [];
       _.each(results, function(r, o) {
         var newTrack = track.slice(),
-            newStep = [];
+            newStep = [],
+            dead = false;
 
-        //console.log('creating new track ' + o + 'processing old track ' + i);
         _.each(r, function(sf, z) {
-        /*if(sf[0] == 'I') {
-          console.log('noy');
-          console.log(sf);
-          console.log(r);
-        } else {
-          console.log('nos');
-          console.log(sf);
-        }*/
+          if(sf[1][0].length == 0 && sf[1][1].length == 0) {
+            dead = true;
+          }
           newStep.push([ sf[0], sf[1] ]);
-          //  console.log('adding to newstep in ' + o + ': ' + sf[0] + ' ' + sf[1]);
         });
-
-        newTrack.push(newStep);
-         // console.log('adding new track with current step in ' + o );
+       
+        if(!dead) {
+          newTrack.push(newStep);
           nextTracks.push(newTrack);
+        } else {
+        }
 
         trackCount++;
       });
@@ -544,28 +563,28 @@ var reason = function(input) {
     formula = nextTracks;
 
     console.log('Round ' + x + ' complete! Tracks: ');
-    /*
-    _.each(formula, function(track, i) {
-      console.log('  Track ' + i);
-      _.each(track, function(step, s) {
-        console.log('    Step ' + s);
-        _.each(step, function(val, z) {
-          console.log('    Formula ' + z);
-          console.log('      Operation: ' + val[0]);
+    /*_.each(formula, function(track, i) {
+        console.log('  Track ' + i);
+        _.each(track, function(step, s) {
+          console.log('    Step ' + s);
+          if(step=='no') return;
+          _.each(step, function(val, z) {
+            console.log('    Formula ' + z);
+            console.log('      Operation: ' + val[0]);
 
-          var prettified = [[],[]];
+            var prettified = [[],[]];
 
-          _.each(val[1][0], function(op, i) {
-            prettified[0][i] = prettyOperation(op); 
+            _.each(val[1][0], function(op, i) {
+              prettified[0][i] = prettyOperation(op); 
+            });
+            _.each(val[1][1], function(op, i) {
+              prettified[1][i] = prettyOperation(op); 
+            });
+            
+            console.log('      Value: ' + prettified[0].join(', ') + ' ⊢ ' + prettified[1].join(', '));
           });
-          _.each(val[1][1], function(op, i) {
-            prettified[1][i] = prettyOperation(op); 
-          });
-          
-          console.log('      Value: ' + prettified[0].join(', ') + ' ⊢ ' + prettified[1].join(', '));
         });
       });
-    });
 */
     if(solutionFound) {
       console.log();
@@ -600,7 +619,7 @@ var reason = function(input) {
 
       break;
     }
-    /*if(x==3) {
+    /*if(x==2) {
       break;
     }*/
   }
@@ -639,7 +658,7 @@ var input = [[
   }
   ]
 ];*/
-
+/*
 var input = [[], [
   {
     'operation': 'implies',
@@ -688,7 +707,7 @@ var input = [[], [
     }
   }
 ]];*/
-/* hilbert 3
+// hilbert 3
 var input = [ [], [
   {
     'operation': 'implies',
