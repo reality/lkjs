@@ -510,7 +510,6 @@ var reason = function(input) {
             return true;
           }
         });
-        console.log('last: ' + subformula[0]);
 
         // each subformula ret
         if(results === null) {
@@ -633,7 +632,7 @@ var reason = function(input) {
       break;
     }
 
-    if(x==4) break;
+    //if(x==4) break;
   }
 };
 
