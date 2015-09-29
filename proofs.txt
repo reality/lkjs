@@ -1,0 +1,36 @@
+SOLUTION FOUND ON STEP 6
+Proof:
+    Step 0
+    Formula 0
+      Operation: IN
+      Value:  ⊢ ((¬A) → (¬B)) → (B → A)
+    Step 1
+    Formula 0
+      Operation: IR
+      Value: (¬A) → (¬B) ⊢ B → A
+    Step 2
+    Formula 0
+      Operation: IR
+      Value: (¬A) → (¬B), B ⊢ A
+    Step 3
+    Formula 0
+      Operation: PL
+      Value: B, (¬A) → (¬B) ⊢ A
+    Step 4
+    Formula 0
+      Operation: IL
+      Value:  ⊢ ¬A, A
+    Formula 1
+      Operation: IL
+      Value: B, ¬B ⊢ 
+    Step 5
+    Formula 0
+      Operation: NR
+      Value: A ⊢ A
+    Formula 1
+      Operation: NL
+      Value: B ⊢ B
+Stats:
+  Rounds: 6
+  Tracks: 731262
+
