@@ -514,7 +514,7 @@ var reason = function(input) {
             return false;
           } else if(lastInstruction == 'PR' && (a[0] == 'CR' || a[0] == 'WR')) {
             return false;
-          else {
+          } else {
             return true;
           }
         });
