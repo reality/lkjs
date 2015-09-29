@@ -466,7 +466,7 @@ var reason = function(input) {
       solutionFound = false,
       nextTracks = [],
       trackCount = 1,
-      oldTracks = {};
+      oLength = input.length;
 
   while(true) {
     nextTracks = [];
@@ -543,7 +543,7 @@ var reason = function(input) {
             dead = false;
 
         _.each(r, function(sf, z) {
-          if(sf[1][0].length == 0 && sf[1][1].length == 0 || (sf[1][0].length + sf[1][1].length) == 1) {
+          if(sf[1][0].length == 0 && sf[1][1].length == 0 || (sf[1][0].length + sf[1][1].length) == 1 || (sf[1][0].length + sf[1][1].length) >= oLength + 10) {
             dead = true;
           }
           newStep.push([ sf[0], sf[1] ]);
