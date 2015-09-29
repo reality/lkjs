@@ -500,6 +500,18 @@ var reason = function(input) {
           answers = applyRules(subformula[1]);
         }
 
+        var lastInstruction = subformula[0];
+        answers = _.filter(answers, function(a, y) {
+          if(lastInstruction == 'CR' && a[0] == 'WR') {
+            return false;
+          } else if(lastInstruction == 'CL' && a[0] == 'WL') {
+            return false;
+          } else {
+            return true;
+          }
+        });
+        console.log('last: ' + subformula[0]);
+
         // each subformula ret
         if(results === null) {
           results = [];
@@ -564,7 +576,7 @@ var reason = function(input) {
     formula = nextTracks;
 
     console.log('Round ' + x + ' complete! Tracks: ' + formula.length);
-    _.each(formula, function(track, i) {
+    /*_.each(formula, function(track, i) {
         console.log('  Track ' + i);
         _.each(track, function(step, s) {
           console.log('    Step ' + s);
@@ -585,7 +597,7 @@ var reason = function(input) {
             console.log('      Value: ' + prettified[0].join(', ') + ' ⊢ ' + prettified[1].join(', '));
           });
         });
-      });
+      });*/
 
     if(solutionFound) {
       console.log();
@@ -620,6 +632,8 @@ var reason = function(input) {
 
       break;
     }
+
+    if(x==4) break;
   }
 };
 
@@ -824,8 +838,8 @@ var input = [[
       'p1': 'A'
     }
   ]
-];
-var input = [[], [
+];*/
+/*var input = [[], [
   {
     'operation': 'or',
     'p1': 'A',
@@ -834,8 +848,8 @@ var input = [[], [
       'p1': 'A'
     }
   }
-]];
-*/
+]];*/
+
 
 reason(input);
 
