@@ -504,6 +504,10 @@ var reason = function(input) {
         answers = _.filter(answers, function(a, y) {
           if(lastInstruction == 'CR' && a[0] == 'WR') {
             return false;
+          } else if(lastInstruction == 'CR' && a[0] == 'CR') { // this may be unwise
+            return false;
+          } else if(lastInstruction == 'CL' && a[0] == 'CL') { // this may be unwise
+            return false;
           } else if(lastInstruction == 'CL' && a[0] == 'WL') {
             return false;
           } else {
