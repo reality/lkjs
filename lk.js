@@ -640,82 +640,12 @@ var reason = function(input) {
       break;
     }
 
-    if(x==4) break;
+    //if(x==1) break;
   }
 };
 
-// B ∨ C ⊢ ((B → (¬A)) ∧ (¬C)) → (¬A)
-/*
-var input = [[
-  {
-    'operation': 'or', 
-    'p1': 'B',
-    'p2': 'C'
-  },
-  ],[
-  {
-      'operation': 'implies',
-      'p1': {
-        'operation': 'and',
-        'p1': {
-          'operation': 'implies',
-          'p1': 'B',
-          'p2': {
-            'operation': 'not',
-            'p1': 'A'
-          }
-        },
-        'p2': {
-          'operation': 'not',
-          'p1': 'C'
-        }
-      },
-      'p2': {
-        'operation': 'not',
-        'p1': 'A'
-      }
-  }
-  ]
-];*/
-/*
-var input = [[], [
-  {
-    'operation': 'implies',
-    'p1': {
-      'operation': 'implies',
-      'p1': 'A',
-      'p2': {
-        'operation': 'or', 
-        'p1': 'B',
-        'p2': 'C'
-      }
-    },
-    'p2': {
-      'operation': 'implies',
-      'p1': {
-        'operation': 'and',
-        'p1': {
-          'operation': 'implies',
-          'p1': 'B',
-          'p2': {
-            'operation': 'not',
-            'p1': 'A'
-          }
-        },
-        'p2': {
-          'operation': 'not',
-          'p1': 'C'
-        }
-      },
-      'p2': {
-        'operation': 'not',
-        'p1': 'A'
-      }
-    }
-  }
-]];
-/*
-var input = [[], [
+// Hilbert #2
+/*var input = [[], [
   {
     'operation': 'implies',
     'p1': 'A',
@@ -726,8 +656,36 @@ var input = [[], [
     }
   }
 ]];*/
-// hilbert 3
+
+// hilbert 4m
 var input = [ [], [
+  {
+    'operation': 'implies',
+    'p1': { 
+      'operation': 'implies',
+      'p1': 'A',
+      'p2': 'B'
+    },
+    'p2': {
+      'operation': 'implies',
+      'p1': {
+        'operation': 'implies',
+        'p1': 'A',
+        'p2': {
+          'operation': 'not',
+          'p1': 'B'
+        }
+      },
+      'p2': {
+        'operation': 'not',
+        'p1': 'A',
+      }
+    }
+  }
+]];
+
+// hilbert #3
+/*var input = [ [], [
   {
     'operation': 'implies',
     'p1': { 
@@ -754,8 +712,8 @@ var input = [ [], [
     }
   }
 ]];
-/*
-var input = [ [], [ {
+*/
+/*var input = [ [], [ {
     'operation': 'implies',
     'p1': {
       'operation': 'implies',
@@ -776,76 +734,6 @@ var input = [ [], [ {
   }
 ]];
 
-//B or C -> B,C
-/*var input = [[
-  'A', 'B', 'C', 'D',
-  {
-    'operation': 'or',
-    'p1': 'B',
-    'p2': 'C'
-  }], [
-    'B', 'C', 'D'
-]];*/
-/*var input = [[
-  'A', 'B'
-  ], [
-  'A', 'B', 'C' 
-]];*/
-
-
-  //(b or c), not c, (b implies (not a)) -> (not a)
-/*var input = [[
-  {
-    'operation': 'or',
-    'p1': 'B',
-    'p2': 'C'
-  },
-  {
-    'operation': 'not',
-    'p1': 'C'
-  },
-  {
-    'operation': 'implies',
-    'p1': 'B',
-    'p2': {
-      'operation': 'not',
-      'p1': 'A'
-    }
-  }
- ],
- [
-    {
-      'operation': 'not',
-      'p1': 'A'
-    }
- ]];
-
-
-var input = [[
-    {
-      'operation': 'or',
-      'p1': 'B',
-      'p2': 'C'
-    },
-    {
-      'operation': 'not',
-      'p1': 'C'
-    },
-    {
-      'operation': 'implies',
-      'p1': 'B',
-      'p2': {
-        'operation': 'not',
-        'p1': 'A'
-      }
-    }
-  ], [
-    {
-      'operation': 'not',
-      'p1': 'A'
-    }
-  ]
-];*/
 /*var input = [[], [
   {
     'operation': 'or',
