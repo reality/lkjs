@@ -452,7 +452,6 @@ var applyRules = function(input) {
       results.push([ output[1], output[2], output[3] ]);
     } else if(_.isNumber(output[0]) && output[0] > 1) {
       _.each(output[2], function(f, y) {
-        //console.log('new result for ' + output[1] + ' ' + y);
         results.push([ output[1], output[2][y], output[3][y] ]);
       });
     }
@@ -544,7 +543,7 @@ var reason = function(input) {
             dead = false;
 
         _.each(r, function(sf, z) {
-          if(sf[1][0].length == 0 && sf[1][1].length == 0) {
+          if(sf[1][0].length == 0 && sf[1][1].length == 0 || (sf[1][0].length + sf[1][1].length) == 1) {
             dead = true;
           }
           newStep.push([ sf[0], sf[1] ]);
@@ -564,8 +563,8 @@ var reason = function(input) {
 
     formula = nextTracks;
 
-    console.log('Round ' + x + ' complete! Tracks: ');
-    /*_.each(formula, function(track, i) {
+    console.log('Round ' + x + ' complete! Tracks: ' + formula.length);
+    _.each(formula, function(track, i) {
         console.log('  Track ' + i);
         _.each(track, function(step, s) {
           console.log('    Step ' + s);
@@ -586,7 +585,7 @@ var reason = function(input) {
             console.log('      Value: ' + prettified[0].join(', ') + ' ⊢ ' + prettified[1].join(', '));
           });
         });
-      });*/
+      });
 
     if(solutionFound) {
       console.log();
