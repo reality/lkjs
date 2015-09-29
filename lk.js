@@ -510,7 +510,11 @@ var reason = function(input) {
             return false;
           } else if(lastInstruction == 'CL' && a[0] == 'WL') {
             return false;
-          } else {
+          } else if(lastInstruction == 'PL' && (a[0] == 'CL' || a[0] == 'WL')) {
+            return false;
+          } else if(lastInstruction == 'PR' && (a[0] == 'CR' || a[0] == 'WR')) {
+            return false;
+          else {
             return true;
           }
         });
