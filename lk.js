@@ -583,7 +583,7 @@ var reason = function(input) {
     formula = nextTracks;
 
     console.log('Round ' + x + ' complete! Tracks: ' + formula.length);
-    _.each(formula, function(track, i) {
+    /*_.each(formula, function(track, i) {
         console.log('  Track ' + i);
         _.each(track, function(step, s) {
           console.log('    Step ' + s);
@@ -605,7 +605,7 @@ var reason = function(input) {
           });
         });
       });
-
+*/
     if(solutionFound) {
       console.log();
 
@@ -658,7 +658,7 @@ var reason = function(input) {
 ]];*/
 
 // hilbert 4m
-var input = [ [], [
+/*var input = [ [], [
   {
     'operation': 'implies',
     'p1': { 
@@ -744,6 +744,17 @@ var input = [ [], [
     }
   }
 ]];*/
+
+var input = [[
+    {
+      'operation': 'implies',
+      'p1': 'A',
+      'p2': 'B'
+    },
+    'A'
+  ], [
+    'B' 
+]];
 
 
 reason(input);

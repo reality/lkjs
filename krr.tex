@@ -1,0 +1,266 @@
+\documentclass{article}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{amsthm}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+
+\lstset{
+language=Java,                  % the language of the code
+basicstyle=\footnotesize,       % the size of the fonts that are used for the code
+numbers=left,                   % where to put the line-numbers
+numberstyle=\footnotesize,      % the size of the fonts that are used for the line-numbers
+stepnumber=1,                   % the step between two line-numbers. If it's 1, each line 
+                                % will be numbered
+numbersep=5pt,                  % how far the line-numbers are from the code
+showspaces=false,               % show spaces adding particular underscores
+showstringspaces=false,         % underline spaces within strings
+showtabs=false,                 % show tabs within strings adding particular underscores
+frame=single,                   % adds a frame around the code
+tabsize=2,                      % sets default tabsize to 2 spaces
+captionpos=t,                   % sets the caption-position to bottom
+breaklines=true,                % sets automatic line breaking
+breakatwhitespace=false,        % sets if automatic breaks should only happen at whitespace
+title=\lstname,                 % show the filename of files included with \lstinputlisting;
+}
+
+\begin{document}
+
+\setlength{\parskip}{\medskipamount}
+\setlength{\parindent}{0pt}
+
+\title{Knowledge Representation \& Reasoning: LK Calculus Reasoner}
+\author{Luke Slater (luke.slater.1@kaust.edu.sa)}
+
+\maketitle
+
+\pagebreak
+
+\section{Implementation}
+
+The basic LK system has been implemented with all logical and structural rules,
+discluding the cut rule and those involving quantifiers. It is implemented in
+Javascript.
+
+In retrospect, I should not have implemented an undecidable problem in
+Javascript. Javascript is not an appropriate language for logical argument
+deduction.
+
+\section{Hilbert Calculus Proofs}
+
+\begin{lstlisting}[mathescape=true,title=Axiom 1 Proof]
+ Step 0
+ Formula 0
+   Operation: IN
+   Value:  $\vdash$ A $\Rightarrow$ A
+ Step 1
+ Formula 0
+   Operation: IR
+   Value: A $\vdash$ A
+\end{lstlisting}
+
+\begin{lstlisting}[mathescape=true,title=Axiom 2 Proof]
+ Step 0
+ Formula 0
+   Operation: IN
+   Value:  $\vdash$ A $\Rightarrow$ (B $\Rightarrow$ A)
+ Step 1
+ Formula 0
+   Operation: IR
+   Value: A $\vdash$ B $\Rightarrow$ A
+ Step 2
+ Formula 0
+   Operation: IR
+   Value: A, B $\vdash$ A
+ Step 3
+ Formula 0
+   Operation: WL
+   Value: A $\vdash$ A
+\end{lstlisting}
+
+\begin{lstlisting}[mathescape=true,title=Axiom 4 Proof]
+ Step 0
+ Formula 0
+   Operation: IN
+   Value:  $\vdash$ (($\neg$A) $\Rightarrow$ ($\neg$B)) $\Rightarrow$ (B $\Rightarrow$ A)
+ Step 1
+ Formula 0
+   Operation: IR
+   Value: ($\neg$A) $\Rightarrow$ ($\neg$B) $\vdash$ B $\Rightarrow$ A
+ Step 2
+ Formula 0
+   Operation: IR
+   Value: ($\neg$A) $\Rightarrow$ ($\neg$B), B $\vdash$ A
+ Step 3
+ Formula 0
+   Operation: PL
+   Value: B, ($\neg$A) $\Rightarrow$ ($\neg$B) $\vdash$ A
+ Step 4
+ Formula 0
+   Operation: IL
+   Value:  $\vdash$ $\neg$A, A
+ Formula 1
+   Operation: IL
+   Value: B, $\neg$B $\vdash$ 
+ Step 5
+ Formula 0
+   Operation: NR
+   Value: A $\vdash$ A
+ Formula 1
+   Operation: NL
+   Value: B $\vdash$ B
+\end{lstlisting}
+
+\begin{lstlisting}[mathescape=true,title=Axiom 4m Proof]
+ Step 0
+ Formula 0
+   Operation: IN
+   Value:  $\vdash$ (A $\Rightarrow$ B) $\Rightarrow$ ((A $\Rightarrow$ ($\neg$B)) $\Rightarrow$ ($\neg$A))
+ Step 1
+ Formula 0
+   Operation: IR
+   Value: A $\Rightarrow$ B $\vdash$ (A $\Rightarrow$ ($\neg$B)) $\Rightarrow$ ($\neg$A)
+ Step 2
+ Formula 0
+   Operation: CR
+   Value: A $\Rightarrow$ B $\vdash$ (A $\Rightarrow$ ($\neg$B)) $\Rightarrow$ ($\neg$A), (A $\Rightarrow$ ($\neg$B)) $\Rightarrow$ ($\neg$A)
+ Step 3
+ Formula 0
+   Operation: IL
+   Value:  $\vdash$ A, (A $\Rightarrow$ ($\neg$B)) $\Rightarrow$ ($\neg$A)
+ Formula 1
+   Operation: IL
+   Value: B $\vdash$ (A $\Rightarrow$ ($\neg$B)) $\Rightarrow$ ($\neg$A)
+ Step 4
+ Formula 0
+   Operation: PR
+   Value:  $\vdash$ (A $\Rightarrow$ ($\neg$B)) $\Rightarrow$ ($\neg$A), A
+ Formula 1
+   Operation: IR
+   Value: B, A $\Rightarrow$ ($\neg$B) $\vdash$ $\neg$A
+ Step 5
+ Formula 0
+   Operation: IR
+   Value: A $\Rightarrow$ ($\neg$B) $\vdash$ $\neg$A, A
+ Formula 1
+   Operation: IL
+   Value:  $\vdash$ A, $\neg$A
+ Formula 2
+   Operation: IL
+   Value: B, $\neg$B $\vdash$ 
+ Step 6
+ Formula 0
+   Operation: WL
+   Value:  $\vdash$ $\neg$A, A
+ Formula 1
+   Operation: PR
+   Value:  $\vdash$ $\neg$A, A
+ Formula 2
+   Operation: CR
+   Value: B, $\neg$B $\vdash$ 
+ Step 7
+ Formula 0
+   Operation: NR
+   Value: A $\vdash$ A
+ Formula 1
+   Operation: NR
+   Value: A $\vdash$ A
+ Formula 2
+   Operation: NL
+   Value: B $\vdash$ B
+\end{lstlisting}
+
+\section{Semantic Entailment}
+
+\section{Modus Ponens}
+
+\begin{lstlisting}[mathescape=true,title=Modus Ponens Proof]
+ Step 0
+ Formula 0
+   Operation: IN
+   Value: A $\Rightarrow$ B, A $\vdash$ B
+ Step 1
+ Formula 0
+   Operation: PL
+   Value: A, A $\Rightarrow$ B $\vdash$ B
+ Step 2
+ Formula 0
+   Operation: IL
+   Value: A $\vdash$ A
+ Formula 1
+   Operation: IL
+   Value: B $\vdash$ B
+\end{lstlisting}
+
+\section{Time Complexity}
+
+\section{Performance Optimisation}
+
+It seems that there are many potential performance enhancements which could be
+applied to attempt to improve the performance of the calculus prover. In the
+methods I have attempted, the focus has been on reducing the number of track
+growth between steps of the search:
+
+\begin{itemize}
+  \item Remove dead tracks: these are tracks with subformulas without any
+  possible solutions, such as:
+  \begin{itemize}
+    \item $\vdash$ A
+    \item Empty set both sides of the sequent
+    \item Total of one symbol on both sides of the sequent
+  \end{itemize}
+
+  \item Limitation of cut rules; many unhelpful tracks were being generated by
+  the constant application of structural rules, so these were limited. The
+  following cases were disallowed:
+  \begin{itemize}
+    \item The last rule was CR and the current rule is WR
+    \item The last rule was CR and the current rule is CR
+    \item The last rule was PR and the current rule is CR
+    \item The last rule was PR and the current rule is WR
+    \item The last rule was CL and the current rule is WL
+    \item The last rule was CL and the current rule is CL
+    \item The last rule was PL and the current rule is CL
+    \item The last rule was PL and the current rule is WL
+  \end{itemize}
+\end{itemize}
+
+I think that there is potential that some of these rules could prevent the
+discovery of proofs in some cases - particularly the limitation of repeated
+structural rules in the case of more complicated formulas. However, I did not
+come accross any such problems during testing.
+
+Given more time to rewrite the system to be a bit more flexible, I think that a
+major improvement could be to disallow the use of structural rules entirely,
+until it has been found that there is no possible solution to be found by the
+application of logical rules only. It should be possible to traverse all
+possibilities, since the LK system without structural rules should terminate.
+
+The main difficulty here is to implement
+effective backtracking, figuring out where to start applying structural rules
+in the case of a dead path. It might seem like the better option to start
+applying structural rules from the last non-dead step, but this will cause
+problems. Take the example of the Law of Excluded Middle
+($\vdash$ A $\vee$ $\neg$A), the proof for which requires an application of the
+CR rule as the first step - it is possible to apply a maximum of two steps
+before exhausting logical rule possibilities (in the case we use OR2 and NR).
+
+Thus, a solution would have to attempt to find a solution using only logical
+rules, and upon failure apply structural rules on the first step, potentially
+leading to many more sub-problems than is actually necessary.
+
+I think the superior solution would be to implement a modified version of the LK
+system which operates on sets rather than lists. This works because we know
+that the contraction and permutation rules mean the order and number of symbols
+in the sequence don't matter, and cannot prevent a valid proof being found.
+
+Furthermore, many implementations of LK calculus also use 'weakening,' which
+allows the addition of arbitrary elements to the set of formulae. This too
+allows us to assume a proof (in which a formula is considered equivalent to A
+$\vdash$ A) without the use of structural rules. This also leads to shorter
+proofs.
+
+
+In combination, we 
+
+\end{document}
