@@ -604,8 +604,8 @@ var reason = function(input) {
             console.log('      Value: ' + prettified[0].join(', ') + ' ⊢ ' + prettified[1].join(', '));
           });
         });
-      });
-*/
+      });*/
+
     if(solutionFound) {
       console.log();
 
@@ -643,6 +643,14 @@ var reason = function(input) {
     //if(x==1) break;
   }
 };
+/*
+var input = [[], [
+  {
+    'operation': 'implies',
+    'p1': 'A',
+    'p2': 'A'
+  }
+]];
 
 // Hilbert #2
 /*var input = [[], [
@@ -655,7 +663,8 @@ var reason = function(input) {
       'p2': 'A'
     }
   }
-]];*/
+]];
+
 
 // hilbert 4m
 /*var input = [ [], [
@@ -682,22 +691,21 @@ var reason = function(input) {
       }
     }
   }
-]];
+]];*/
 
 // hilbert #3
-/*var input = [ [], [
-  {
+var input = [ [
+  { 
     'operation': 'implies',
-    'p1': { 
-      'operation': 'implies',
-      'p1': 'A',
-      'p2': {
-        'operation': 'implies',
-        'p1': 'B',
-        'p2': 'C'
-      }
-    },
+    'p1': 'A',
     'p2': {
+      'operation': 'implies',
+      'p1': 'B',
+      'p2': 'C'
+    }
+  }
+], [
+  {
       'operation': 'implies',
       'p1': {
         'operation': 'implies',
@@ -709,10 +717,9 @@ var reason = function(input) {
         'p1': 'A',
         'p2': 'C'
       }
-    }
   }
 ]];
-*/
+
 /*var input = [ [], [ {
     'operation': 'implies',
     'p1': {

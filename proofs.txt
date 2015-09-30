@@ -1,3 +1,45 @@
+HILBERT AXIOM 1
+
+SOLUTION FOUND ON STEP 2
+Proof:
+    Step 0
+    Formula 0
+      Operation: IN
+      Value:  ⊢ A → A
+    Step 1
+    Formula 0
+      Operation: IR
+      Value: A ⊢ A
+Stats:
+  Rounds: 2
+  Tracks: 7
+
+HILBERT AXIOM 2
+
+SOLUTION FOUND ON STEP 4
+Proof:
+    Step 0
+    Formula 0
+      Operation: IN
+      Value:  ⊢ A → (B → A)
+    Step 1
+    Formula 0
+      Operation: IR
+      Value: A ⊢ B → A
+    Step 2
+    Formula 0
+      Operation: IR
+      Value: A, B ⊢ A
+    Step 3
+    Formula 0
+      Operation: WL
+      Value: A ⊢ A
+Stats:
+  Rounds: 4
+  Tracks: 118
+
+HILBERT AXIOM 4
+
 SOLUTION FOUND ON STEP 6
 Proof:
     Step 0
@@ -33,4 +75,91 @@ Proof:
 Stats:
   Rounds: 6
   Tracks: 731262
+
+HILBERT AXIOM 4m
+
+SOLUTION FOUND ON STEP 8
+Proof:
+    Step 0
+    Formula 0
+      Operation: IN
+      Value:  ⊢ (A → B) → ((A → (¬B)) → (¬A))
+    Step 1
+    Formula 0
+      Operation: IR
+      Value: A → B ⊢ (A → (¬B)) → (¬A)
+    Step 2
+    Formula 0
+      Operation: CR
+      Value: A → B ⊢ (A → (¬B)) → (¬A), (A → (¬B)) → (¬A)
+    Step 3
+    Formula 0
+      Operation: IL
+      Value:  ⊢ A, (A → (¬B)) → (¬A)
+    Formula 1
+      Operation: IL
+      Value: B ⊢ (A → (¬B)) → (¬A)
+    Step 4
+    Formula 0
+      Operation: PR
+      Value:  ⊢ (A → (¬B)) → (¬A), A
+    Formula 1
+      Operation: IR
+      Value: B, A → (¬B) ⊢ ¬A
+    Step 5
+    Formula 0
+      Operation: IR
+      Value: A → (¬B) ⊢ ¬A, A
+    Formula 1
+      Operation: IL
+      Value:  ⊢ A, ¬A
+    Formula 2
+      Operation: IL
+      Value: B, ¬B ⊢ 
+    Step 6
+    Formula 0
+      Operation: WL
+      Value:  ⊢ ¬A, A
+    Formula 1
+      Operation: PR
+      Value:  ⊢ ¬A, A
+    Formula 2
+      Operation: CR
+      Value: B, ¬B ⊢ 
+    Step 7
+    Formula 0
+      Operation: NR
+      Value: A ⊢ A
+    Formula 1
+      Operation: NR
+      Value: A ⊢ A
+    Formula 2
+      Operation: NL
+      Value: B ⊢ B
+Stats:
+  Rounds: 8
+  Tracks: 109824297
+
+MODUS PONENS
+
+SOLUTION FOUND ON STEP 3
+Proof:
+    Step 0
+    Formula 0
+      Operation: IN
+      Value: A → B, A ⊢ B
+    Step 1
+    Formula 0
+      Operation: PL
+      Value: A, A → B ⊢ B
+    Step 2
+    Formula 0
+      Operation: IL
+      Value: A ⊢ A
+    Formula 1
+      Operation: IL
+      Value: B ⊢ B
+Stats:
+  Rounds: 3
+  Tracks: 118
 
