@@ -752,6 +752,17 @@ var input = [ [
   }
 ]];*/
 
+var input = [[
+    {
+      'operation': 'implies',
+      'p1': 'A',
+      'p2': 'B'
+    },
+    'A'
+  ], [
+    'B' 
+]];
+
 
 reason(input);
 
