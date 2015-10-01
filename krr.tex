@@ -219,6 +219,28 @@ the output stage.
 
 \section{Time Complexity}
 
+The implementation is undecidable, and so it is very difficult to calculate the
+time complexity - there is no lower bound. The best one
+can say is that if there is a proof to be found, then given unlimited time and
+unlimited resources, it will eventually be found.
+
+The growth of the number of tracks which must be evaluated at every step of the 
+breadth first search increases exponentially, but the degree of growth is highly 
+dependent on the input. 
+
+The reason for this is that the application of certain rules leads to a massive
+number of new potential tracks compared to others. These particularly explosive
+rules are those which lead to multiple formulas e.g. IL. They lead to many new
+tracks initially because one must create a new track for every possible manner
+of distributing the remaining symbols in the formula between the two resulting
+formulas, and in subsequent steps because one must create new tracks for every
+combination of every possible rule applicable to every subformula in a given
+track repeatedly.
+
+This issue is particularly apparent while trying to prove the Hilbert calculus
+axioms, which rely on nested implications - leading to several applications of
+the IL rule.
+
 \section{Performance Optimisation}
 
 It seems that there are many potential performance enhancements which could be
