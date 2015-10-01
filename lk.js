@@ -13,40 +13,16 @@ var isAxiom = function(input) {
     if(_.isString(a) && a == b) {
       return true;
     }
-  } else {
-    return false;
   }
+
+  return false;
 };
 
-var formulaeEquals = function(a, b) {
-  // A set of two formulae forming a step of a track
-  var different = false;
-  console.log('trying to compare ' + a + ' and ' + b);
-
-  _.each(a[1], function(sf, x) {
-    var bsf = b[1];
-    console.log('got ' + a[1]);
-    _.each(sf, function(li, y) {
-      if(prettyOperation(li) != prettyOperation(bsf[0][y])) {
-        console.log('comparing ' + prettyOperation(li) + ' ' + prettyOperation(bsf[y]));
-        different = true;
-      }
-    }); 
-  });
-
-  _.each(a[2], function(sf, x) {
-    var bsf = b[2];
-    console.log('got ' + a[1]);
-    _.each(sf, function(li, y) {
-      if(prettyOperation(li) != prettyOperation(bsf[0][y])) {
-        console.log('comparing ' + prettyOperation(li) + ' ' + prettyOperation(bsf[y]));
-        different = true;
-      }
-    }); 
-  });
-
-  return different == false;
-};
+var isEntailsAxiom = function(input, additionalAxioms) {
+  if(isAxiom(input)) {
+    return true;
+  }
+}
 
 var prettyOperation = function(item) {
   var out = item,
@@ -154,22 +130,6 @@ var inferenceRules = [
 
     return [ success, 'OL', formulaeOne, formulaeTwo ];
   },
-//  Track 0
-//    Step 0
-//    Formula 0
-//      Operation: IN
-//      Value: B ∨ C ⊢ B, C
- //   Step 1
-  //  Formula 0
- //     Operation: OL
- //     Value:  ⊢ B
- ///   Formula 1
-  //    Operation: OL
- //     Value: C, B ⊢ C
-
-  // turn B or C -> B,C into
-  //  B -> B
-  // C -> C
 
   function(input) { // IL
     var left = input[0],
@@ -186,8 +146,6 @@ var inferenceRules = [
 
       // Cut the implies out of the input 
       left.splice(-1);
-      //console.log('left before');
-      //console.log(left);
 
       if(left.length > 0) {
         for(var i=0;i<left.length+1;i++) {
@@ -204,8 +162,6 @@ var inferenceRules = [
 
             formulaeOne.push([ thisLeftOne, thisRightOne ]);
             formulaeTwo.push([ thisLeftTwo, thisRightTwo ]);
-            //console.log('f2 with left ' + i + ' right ' + y);
-            //console.log([ thisLeftTwo, thisRightTwo ]);
           }
         }
       } else { // there is probably a better way to do this but it's 1am stop me
@@ -223,22 +179,6 @@ var inferenceRules = [
 
     return [ success, 'IL', formulaeOne, formulaeTwo ];
   },
-  // here we must check every way of splitting the other inputs
-  /*Here we should turn e.g.
-  (b or c), not c, (b implies (not a)) -> (not a)
-  into 
-    b or c, (not c) -> b
-    (not a) -> (not a)*/
-  /*
-    Value: B ∨ C, ¬C, B → (¬A) ⊢ ¬A
-
-    Formula 0
-      Operation: IL
-      Value: B ∨ C ⊢ B
-    Formula 1
-      Operation: IL
-      Value: ¬A, ¬C ⊢
-*/
 
   function(input) { // NL
     var left = input[0],
@@ -336,19 +276,47 @@ var inferenceRules = [
 
     if(right[0] && right[0].operation == 'and') {
 
-      var nFormula = [ left.splice(-1) , [ right[0].p2 ]  ];
-      nFormula[1] = nFormula[1].concat(right.splice(2));
+      var formulaeOne = [],
+          formulaeTwo = [],
+          formulaOneStart = right[0].p1,
+          formulaTwoStart = right[0].p2;
 
-      right.splice(0,1,element.p1);
+      // Cut the AND out of the input 
+      right.splice(0, 1);
 
-      success = true;
+      if(left.length > 0) {
+        for(var i=0;i<left.length+1;i++) {
+          var thisLeftOne = left.slice(0, i);
+              thisLeftTwo = left.slice(i);
+
+          for(var y=0;y<right.length+1;y++) {
+            var thisRightOne = right.slice(0, y);
+            var thisRightTwo = right.slice(y);
+
+            thisRightOne.slice(0,0, formulaOneStart)
+            thisRightTwo.slice(0,0, formulaTwoStart)
+
+            formulaeOne.push([ thisLeftOne, thisRightOne ]);
+            formulaeTwo.push([ thisLeftTwo, thisRightTwo ]);
+          }
+        }
+      } else { // there is probably a better way to do this but it's 1am stop me
+        for(var y=0;y<right.length+1;y++) {
+          var thisRightOne = right.slice(0, y);
+          var thisRightTwo = right.slice(y);
+          thisRightOne.slice(0,0, formulaOneStart)
+          thisRightTwo.slice(0,0, formulaTwoStart)
+
+          formulaeOne.push([ [ ], thisRightOne ]);
+          formulaeTwo.push([ [ ], thisRightTwo ]);
+        }
+      }
+
+      success = formulaeOne.length;
     }
 
-    return [ success, 'AR', input, nFormula ];
+    return [ success, 'AR', formulaeOne, formulaeTwo ];
   },
-  // turn B and C -> B,C into
-  //  B -> B
-  // C -> C
 
   function(input) { // AR
     var left = input[0],
@@ -459,8 +427,18 @@ var applyRules = function(input) {
 
   return results;
 };
+var input = [[ // propositional formulas
+  ['A'],
+  [ {
+    'operation': 'implies',
+    'p1': 'A',
+    'p2': 'B'
+  } ]
+], [ // Formula to be entailed
+  [], ['B']
+]];
 
-var reason = function(input) {
+var reason = function(input, entailment) {
   var x = 0,
       formula = [ [ [ [ 'IN', input ] ] ] ], 
       solutionFound = false,
@@ -477,15 +455,6 @@ var reason = function(input) {
 
       if(currentStep == 'no' || currentStep == false) {
         return false;
-      }
-
-      var solved = _.every(currentStep, function(subformula, o) {
-        return isAxiom(subformula[1]);
-      });
-
-      if(solved) {
-        solutionFound = track;
-        return;
       }
 
       // Run the rulz
@@ -533,27 +502,22 @@ var reason = function(input) {
           });
         } else { // If we already have some results for this track, then add a subformula to each of them
           var newResults = [];
-
           _.each(results, function(r, o) {
-
             _.each(answers, function(n, z) {
               var newResult = r.slice(0);
 
               newResult.push([ n[0], n[1] ])
-
               if(n[2]) {
                 newResult.push([ n[0], n[2] ]);
               }
 
               newResults.push(newResult);
-
             });
 
           }); // result permutations
 
           results = newResults;
         }
-
       });
 
       _.each(results, function(r, o) {
@@ -573,6 +537,14 @@ var reason = function(input) {
           nextTracks.push(newTrack);
         }
 
+        var solved = _.every(newStep, function(subformula, o) {
+          return isAxiom(subformula[1]);
+        });
+
+        if(solved) {
+          solutionFound = newTrack;
+        }
+
         trackCount++;
       });
 
@@ -583,28 +555,28 @@ var reason = function(input) {
     formula = nextTracks;
 
     console.log('Round ' + x + ' complete! Tracks: ' + formula.length);
-    /*_.each(formula, function(track, i) {
-        console.log('  Track ' + i);
-        _.each(track, function(step, s) {
-          console.log('    Step ' + s);
-          if(step=='no') return;
-          _.each(step, function(val, z) {
-            console.log('    Formula ' + z);
-            console.log('      Operation: ' + val[0]);
+    /* DEBUG _.each(formula, function(track, i) {
+      console.log('  Track ' + i);
+      _.each(track, function(step, s) {
+        console.log('    Step ' + s);
+        if(step=='no') return;
+        _.each(step, function(val, z) {
+          console.log('    Formula ' + z);
+          console.log('      Operation: ' + val[0]);
 
-            var prettified = [[],[]];
+          var prettified = [[],[]];
 
-            _.each(val[1][0], function(op, i) {
-              prettified[0][i] = prettyOperation(op); 
-            });
-            _.each(val[1][1], function(op, i) {
-              prettified[1][i] = prettyOperation(op); 
-            });
-            
-            console.log('      Value: ' + prettified[0].join(', ') + ' ⊢ ' + prettified[1].join(', '));
+          _.each(val[1][0], function(op, i) {
+            prettified[0][i] = prettyOperation(op); 
           });
+          _.each(val[1][1], function(op, i) {
+            prettified[1][i] = prettyOperation(op); 
+          });
+          
+          console.log('      Value: ' + prettified[0].join(', ') + ' ⊢ ' + prettified[1].join(', '));
         });
-      });*/
+      });
+    });*/
 
     if(solutionFound) {
       console.log();
@@ -632,17 +604,15 @@ var reason = function(input) {
         });
       });
 
-
       console.log('Stats:');
       console.log('  Rounds: ' + x);
       console.log('  Tracks: ' + trackCount);
 
       break;
     }
-
-    //if(x==1) break;
   }
 };
+
 /*
 var input = [[], [
   {
@@ -694,7 +664,7 @@ var input = [[], [
 ]];*/
 
 // hilbert #3
-var input = [ [
+/*var input = [ [
   { 
     'operation': 'implies',
     'p1': 'A',
@@ -718,7 +688,7 @@ var input = [ [
         'p2': 'C'
       }
   }
-]];
+]];*/
 
 /*var input = [ [], [ {
     'operation': 'implies',
@@ -751,19 +721,32 @@ var input = [ [
     }
   }
 ]];*/
-
-var input = [[
+var input = [[],[
     {
-      'operation': 'implies',
-      'p1': 'A',
-      'p2': 'B'
-    },
-    'A'
-  ], [
-    'B' 
+      'operation': 'and',
+      'p1': {
+        'operation': 'or',
+        'p1': 'A',
+        'p2': {
+          'operation': 'not',
+          'p1': 'B'
+        }
+      },
+      'p2': {
+        'operation': 'or',
+        'p1': 'A',
+        'p2': 'B'
+      }
+    }
+  ]
+];
+
+/*
+var input = [[ // propositional formulas
+  ['A','B'],
+  [ 'Z' ]
+], [ // Formula to be entailed
+  ['A', 'B'], ['B']
 ]];
-
-
-reason(input);
-
-
+*/
+reason(input, true);
