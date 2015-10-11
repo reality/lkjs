@@ -9,9 +9,11 @@ var isAxiom = function(input) {
     if(_.isObject(a) && _.isObject(b) && a.operation == 'not' && b.operation == 'not') {
       a = a.p1;
       b = b.p1;
+      console.log('compare ' + a + ' and ' + b);
     }
 
     if(_.isString(a) && a == b) {
+    console.log('pass');
       return true;
     }
   }
@@ -70,6 +72,7 @@ var prettyOperation = function(item) {
   return out;
 };
 
+// These are the rules which implement the LK system. 
 var inferenceRules = [
   // LEFT RULES 
 
@@ -439,7 +442,7 @@ var applyRules = function(input) {
 
     if(output[0] === true) { // Success
       results.push([ output[1], output[2], output[3] ]);
-    } else if(_.isNumber(output[0]) && output[0] > 1) {
+    } else if(_.isNumber(output[0]) && output[0] > 1) { // If the rule returned several possibilities add them all
       _.each(output[2], function(f, y) {
         results.push([ output[1], output[2][y], output[3][y] ]);
       });
@@ -449,31 +452,40 @@ var applyRules = function(input) {
   return results;
 };
 
+// Reason a formula!
 var reason = function(input, entailment) {
   var x = 0,
-      formula = [ [ [ [ 'IN', input ] ] ] ], 
       solutionFound = false,
       nextTracks = [],
       trackCount = 1,
       oLength = input.length;
 
-  while(true) {
+  var formula;
+  if(entailment) {
+    formula = [ [ [ [ 'IN', input[1] ] ] ] ]; 
+  } else {
+    formula = [ [ [ [ 'IN', input ] ] ] ]; 
+  }
+
+  while(true) { // "Rounds"
     nextTracks = [];
     x++;
 
-    _.each(formula, function(track, i) {
+    _.each(formula, function(track, i) { // Iterate tracks
       var currentStep = _.last(track);
 
-      if(currentStep == 'no' || currentStep == false) {
+      if(currentStep == 'no' || currentStep == false) { // Weirdness with false testing here, so used 'no'; bad
         return false;
       }
 
-      // Run the rulz
+      // Run the rules
       var results = null;
-      _.each(currentStep, function(subformula, y) {
+      _.each(currentStep, function(subformula, y) { // Iterate subformulas in the current track
 
+        // Check if the subformula is an axiom, or run the rules (this way we 
+        //   prevent further evaluation of subformulas which have reached axiom when the others haven't)
         var answers;
-        if(entailment) {
+        if(entailment) { 
           if(isEntailmentAxiom(subformula[0], input[0])) {
             answers = [[ subformula[0], subformula[1] ]];
           } else {
@@ -557,6 +569,7 @@ var reason = function(input, entailment) {
           nextTracks.push(newTrack);
         }
 
+        // Check if all the subformulas are solved
         var solved = _.every(newStep, function(subformula, o) {
           return isAxiom(subformula[1]);
         });
@@ -633,6 +646,8 @@ var reason = function(input, entailment) {
   }
 };
 
+/** EXAMPLES
+
 /*
 var input = [[], [
   {
@@ -641,9 +656,11 @@ var input = [[], [
     'p2': 'A'
   }
 ]];
+*/
 
 // Hilbert #2
-/*var input = [[], [
+/*
+var input = [[], [
   {
     'operation': 'implies',
     'p1': 'A',
@@ -657,6 +674,7 @@ var input = [[], [
 */
 
 // hilbert 4m
+/*
 var input = [ [], [
   {
     'operation': 'implies',
@@ -682,9 +700,11 @@ var input = [ [], [
     }
   }
 ]];
+*/
 
 // hilbert #3
-/*var input = [ [
+/*
+var input = [ [
   { 
     'operation': 'implies',
     'p1': 'A',
@@ -708,9 +728,47 @@ var input = [ [], [
         'p2': 'C'
       }
   }
-]];*/
+]];
+*/
+// Hilbert 4i
+/*
+var input = [ [], [ {
+    'operation': 'implies',
+    'p1': {
+      'operation': 'implies',
+      'p1': 'A',
+      'p2': {
+        'operation': 'not',
+        'p1': 'A'
+      }
+    },
+    'p2': {
+      'operation': 'not',
+      'p1': 'A'
+    }
+  }
+]];
+*/
 
-/*var input = [ [], [ {
+// Hilbert 5i
+var input = [ [], [ {
+    'operation': 'implies',
+    'p1': {
+      'operation': 'not',
+      'p1': 'A'
+    },
+    'p2': {
+      'operation': 'implies',
+      'p1': 'A',
+      'p2': 'B'
+    }
+  }
+]];
+
+
+
+/*
+var input = [ [], [ {
     'operation': 'implies',
     'p1': {
       'operation': 'implies',
@@ -730,8 +788,10 @@ var input = [ [], [
     }
   }
 ]];
+*/
 
-/*var input = [[], [
+/*
+var input = [[], [
   {
     'operation': 'or',
     'p1': 'A',
@@ -740,8 +800,11 @@ var input = [ [], [
       'p1': 'A'
     }
   }
-]];*/
-/*var input = [[],[
+]];
+*/
+
+/*
+var input = [[],[
     {
       'operation': 'and',
       'p1': {
@@ -759,14 +822,18 @@ var input = [ [], [
       }
     }
   ]
-];*/
+];
+*/
 
+// Entailment example (note: pass true as the second argument of reason to use this)
 /*
-var input = [[ // propositional formulas
+var input = [[ // formulas
   ['A','B'],
   [ 'Z' ]
 ], [ // Formula to be entailed
   ['A', 'B'], ['B']
 ]];
 */
+
+
 reason(input, false);

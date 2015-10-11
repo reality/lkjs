@@ -67,7 +67,8 @@ The implementation operates on lists of symbols, which are modelled internally
 by arrays - one for each side of the sequent. Operations are represented in
 object notation - and these representations are also required as the input
 format due to the difficulty of parsing prefix or infix logical notation in
-Javascript. These representations are, however, converted to infix notation for
+Javascript (some examples are given in the script). These representations are, 
+however, converted to infix notation for
 the output stage. Each of the rules has its own function, which checks the item
 closest to the sequent on its respective side for a match, and transforms it if
 possible (and also returns additional subformulas or results if this is
@@ -201,13 +202,78 @@ believe it would eventually reach one given unlimited time and memory.
    Value: B $\vdash$ B
 \end{lstlisting}
 
+\begin{lstlisting}[mathescape=true,title=Axiom 4i Proof]
+  Step 0
+  Formula 0
+    Operation: IN
+    Value:  $\vdash$ (A $\Rightarrow$ ($\neg$A)) $\Rightarrow$ ($\neg$A)
+  Step 1
+  Formula 0
+    Operation: CR
+    Value:  $\vdash$ (A $\Rightarrow$ ($\neg$A)) $\Rightarrow$ ($\neg$A), (A $\Rightarrow$ ($\neg$A)) $\Rightarrow$ ($\neg$A)
+  Step 2
+  Formula 0
+    Operation: IR
+    Value: A $\Rightarrow$ ($\neg$A) $\vdash$ $\neg$A, (A $\Rightarrow$ ($\neg$A)) $\Rightarrow$ ($\neg$A)
+  Step 3
+  Formula 0
+    Operation: IL
+    Value:  $\vdash$ A, $\neg$A
+  Formula 1
+    Operation: IL
+    Value: $\neg$A $\vdash$ (A $\Rightarrow$ ($\neg$A)) $\Rightarrow$ ($\neg$A)
+  Step 4
+  Formula 0
+    Operation: PR
+    Value:  $\vdash$ $\neg$A, A
+  Formula 1
+    Operation: IR
+    Value: $\neg$A, A $\Rightarrow$ ($\neg$A) $\vdash$ $\neg$A
+  Step 5
+  Formula 0
+    Operation: NR
+    Value: A $\vdash$ A
+  Formula 1
+    Operation: WL
+    Value: $\neg$A $\vdash$ $\neg$A
+\end{lstlisting}
+
+\begin{lstlisting}[mathescape=true,title=Axiom 5i Proof]
+  Step 0
+  Formula 0
+    Operation: IN
+    Value:  $\vdash$ ($\neg$A) $\Rightarrow$ (A $\Rightarrow$ B)
+  Step 1
+  Formula 0
+    Operation: IR
+    Value: $\neg$A $\vdash$ A $\Rightarrow$ B
+  Step 2
+  Formula 0
+    Operation: IR
+    Value: $\neg$A, A $\vdash$ B
+  Step 3
+  Formula 0
+    Operation: WR
+    Value: $\neg$A, A $\vdash$ 
+  Step 4
+  Formula 0
+    Operation: PL
+    Value: A, $\neg$A $\vdash$ 
+  Step 5
+  Formula 0
+    Operation: NL
+    Value: A $\vdash$ A
+\end{lstlisting}
+
+
 \section{Semantic Entailment}
 
 This functionality was implemented by adding the required axioms to the prover,
 and then running the formula against these new axioms along with the base LK
 axiom. It was difficult to find a good example for this functionality, since
 with most would require the implementation of the cut rule (since the prover
-works in reverse).
+works in reverse). The functionality accepts a different form of input and an
+additional flag to the reason function (an example is given in the program).
 
 \section{Modus Ponens}
 
