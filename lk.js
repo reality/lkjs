@@ -1,5 +1,6 @@
 var _ = require('underscore')._;
 
+// Test if A ⊢ A
 var isAxiom = function(input) {
   if(input[0].length == 1 && input[1].length == 1) {
     var a = input[0][0],
@@ -18,12 +19,30 @@ var isAxiom = function(input) {
   return false;
 };
 
-var isEntailsAxiom = function(input, additionalAxioms) {
+// Test if A ⊢ A, or any set of additional formulae
+var isEntailmentAxiom = function(input, additionalAxioms) {
   if(isAxiom(input)) {
     return true;
   }
+
+  var axiomFound = false,
+      oF = _.reduce(input[0], function(m, f){ return f += prettyOperation(f); }, '');
+  oF += _.reduce(input[1], function(m, f){ return f += prettyOperation(f); }, ' |- '); 
+
+  _.some(additionalAxioms, function(a) {
+    var nF = _.reduce(a[0], function(m, f){ return f += prettyOperation(f); }, '');
+    nF += _.reduce(a[1], function(m, f){ return f += prettyOperation(f); }, ' |- '); 
+
+    if(oF == nF) {
+      axiomFound = true;
+      return true;
+    }
+  });
+
+  return axiomFound;
 }
 
+// Take a formula in object notation and turn it into a nice string with infix logic notation
 var prettyOperation = function(item) {
   var out = item,
       p1 = item.p1,
@@ -106,6 +125,7 @@ var inferenceRules = [
           thisLeftOne.push(formulaOneEnd)
           thisLeftTwo.push(formulaTwoEnd)
 
+          // Create all possible permutations of the new formula
           for(var y=0;y<right.length+1;y++) {
             var thisRightOne = right.slice(0, y);
             var thisRightTwo = right.slice(y);
@@ -114,7 +134,7 @@ var inferenceRules = [
             formulaeTwo.push([ thisLeftTwo, thisRightTwo ]);
           }
         }
-      } else { // there is probably a better way to do this but it's 1am stop me
+      } else { // there is probably a better way to do this
         for(var y=0;y<right.length+1;y++) {
           var thisRightOne = right.slice(0, y);
           var thisRightTwo = right.slice(y);
@@ -125,7 +145,6 @@ var inferenceRules = [
       }
 
       success = formulaeOne.length;
-      //console.log('OL ' + success);
     }
 
     return [ success, 'OL', formulaeOne, formulaeTwo ];
@@ -154,6 +173,7 @@ var inferenceRules = [
 
           thisLeftTwo.push(formulaTwoEnd)
 
+          // Create all possible permutations of the new formula
           for(var y=0;y<right.length+1;y++) {
             var thisRightOne = right.slice(0, y)
             var thisRightTwo = right.slice(y);
@@ -164,7 +184,7 @@ var inferenceRules = [
             formulaeTwo.push([ thisLeftTwo, thisRightTwo ]);
           }
         }
-      } else { // there is probably a better way to do this but it's 1am stop me
+      } else { // there is probably a better way to do this
         for(var y=0;y<right.length+1;y++) {
           var thisRightOne = [formulaOneStart].concat(right.slice(0, y));
           var thisRightTwo = right.slice(y);
@@ -289,6 +309,7 @@ var inferenceRules = [
           var thisLeftOne = left.slice(0, i);
               thisLeftTwo = left.slice(i);
 
+          // Create all possible permutations of the new formulae
           for(var y=0;y<right.length+1;y++) {
             var thisRightOne = right.slice(0, y);
             var thisRightTwo = right.slice(y);
@@ -300,7 +321,7 @@ var inferenceRules = [
             formulaeTwo.push([ thisLeftTwo, thisRightTwo ]);
           }
         }
-      } else { // there is probably a better way to do this but it's 1am stop me
+      } else { // there is probably a better way to do this 
         for(var y=0;y<right.length+1;y++) {
           var thisRightOne = right.slice(0, y);
           var thisRightTwo = right.slice(y);
@@ -427,16 +448,6 @@ var applyRules = function(input) {
 
   return results;
 };
-var input = [[ // propositional formulas
-  ['A'],
-  [ {
-    'operation': 'implies',
-    'p1': 'A',
-    'p2': 'B'
-  } ]
-], [ // Formula to be entailed
-  [], ['B']
-]];
 
 var reason = function(input, entailment) {
   var x = 0,
@@ -462,13 +473,21 @@ var reason = function(input, entailment) {
       _.each(currentStep, function(subformula, y) {
 
         var answers;
-        if(isAxiom(subformula[1])) {
-          answers = [[ subformula[0], subformula[1] ]];
-          // doing this
+        if(entailment) {
+          if(isEntailmentAxiom(subformula[0], input[0])) {
+            answers = [[ subformula[0], subformula[1] ]];
+          } else {
+            answers = applyRules(subformula[1]);
+          }
         } else {
-          answers = applyRules(subformula[1]);
+          if(isAxiom(subformula[1])) {
+            answers = [[ subformula[0], subformula[1] ]];
+          } else {
+              answers = applyRules(subformula[1]);
+          }
         }
 
+        // Filter out naughty repetitions of structural rules
         var lastInstruction = subformula[0];
         answers = _.filter(answers, function(a, y) {
           if(lastInstruction == 'CR' && a[0] == 'WR') {
@@ -525,6 +544,7 @@ var reason = function(input, entailment) {
             newStep = [],
             dead = false;
 
+        // Filter some (probably) dead track patterns
         _.each(r, function(sf, z) {
           if(sf[1][0].length == 0 && sf[1][1].length == 0 || (sf[1][0].length + sf[1][1].length) == 1 || (sf[1][0].length + sf[1][1].length) >= oLength + 10) {
             dead = true;
@@ -634,10 +654,10 @@ var input = [[], [
     }
   }
 ]];
-
+*/
 
 // hilbert 4m
-/*var input = [ [], [
+var input = [ [], [
   {
     'operation': 'implies',
     'p1': { 
@@ -661,7 +681,7 @@ var input = [[], [
       }
     }
   }
-]];*/
+]];
 
 // hilbert #3
 /*var input = [ [
@@ -721,7 +741,7 @@ var input = [[], [
     }
   }
 ]];*/
-var input = [[],[
+/*var input = [[],[
     {
       'operation': 'and',
       'p1': {
@@ -739,7 +759,7 @@ var input = [[],[
       }
     }
   ]
-];
+];*/
 
 /*
 var input = [[ // propositional formulas
@@ -749,4 +769,4 @@ var input = [[ // propositional formulas
   ['A', 'B'], ['B']
 ]];
 */
-reason(input, true);
+reason(input, false);

@@ -38,10 +38,9 @@ title=\lstname,                 % show the filename of files included with \lsti
 
 \section{Implementation}
 
-The basic LK system has been implemented with all logical and structural rules,
-discluding the cut rule and those involving quantifiers. It is implemented in
-Javascript. In retrospect, I should not have implemented an undecidable problem in
-Javascript. Javascript is not an appropriate language for logical argument
+The basic LK system has been implemented with all logical and structural rules
+necessary for propositional logic. It is implemented in
+Javascript. In retrospect, I should not have implemented this in Javascript. Javascript is not an appropriate language for logical argument
 deduction.
 
 The algorithm uses a breadth-first search to incrementally consider all possible
@@ -75,6 +74,10 @@ possible (and also returns additional subformulas or results if this is
 necessary).
 
 \section{Hilbert Calculus Proofs}
+
+The propositional Hilbert Calculus axioms were provable, apart from axiom three,
+which required too many steps for the program to reach a proof - though I
+believe it would eventually reach one given unlimited time and memory.
 
 \begin{lstlisting}[mathescape=true,title=Axiom 1 Proof]
  Step 0
@@ -200,6 +203,12 @@ necessary).
 
 \section{Semantic Entailment}
 
+This functionality was implemented by adding the required axioms to the prover,
+and then running the formula against these new axioms along with the base LK
+axiom. It was difficult to find a good example for this functionality, since
+with most would require the implementation of the cut rule (since the prover
+works in reverse).
+
 \section{Modus Ponens}
 
 \begin{lstlisting}[mathescape=true,title=Modus Ponens Proof]
@@ -246,17 +255,17 @@ the IL rule.
 
 \section{Performance Optimisation}
 
-It seems that there are many potential performance enhancements which could be
+There are many potential performance enhancements which could be
 applied to attempt to improve the performance of the calculus prover. 
 
 \subsection{Implemented Improvements}
 
 In the
-methods I have attempted, the focus has been on reducing the number of track
+methods I have attempted, the focus has been on reducing the amount of track
 growth between steps of the search:
 
 \begin{itemize}
-  \item Remove dead tracks: these are tracks with subformulas without any
+  \item Remove dead tracks: these are tracks including subformulas without any
   possible solutions, such as:
   \begin{itemize}
     \item $\vdash$ A
@@ -285,7 +294,7 @@ growth between steps of the search:
 
 I think that there is potential that some of these rules could prevent the
 discovery of proofs in some cases - particularly the limitation of repeated
-structural rules in the case of more complicated formulas. However, I did not
+structural rules for more complicated formulas. However, I did not
 come accross any such problems during testing and they can easily be disabled.
 
 \subsection{Structural Rules}
@@ -313,12 +322,7 @@ I think the superior solution would be to implement a modified version of the LK
 system which operates on sets rather than lists. This works because we know
 that the contraction and permutation rules mean the order and number of symbols
 in the sequence don't matter, and cannot prevent a valid proof being found.
-
-Furthermore, many implementations of LK calculus also use 'weakening,' which
-allows the addition of arbitrary elements to the set of formulae. This too
-allows us to assume a proof (in which a formula is considered equivalent to A
-$\vdash$ A) without the use of structural rules. This also leads to shorter
-proofs.
+These modifications also lead to shorter proofs.
 
 \subsection{Existing Performance Issues}
 
